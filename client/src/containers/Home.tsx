@@ -1,15 +1,68 @@
-import { useEffect, useContext, Fragment } from 'react';
+import { useEffect, useContext, Fragment, useState } from 'react';
 import { SnippetsContext } from '../store';
-import { Layout, PageHeader, EmptyState } from '../components/UI';
+import { Layout, PageHeader, EmptyState, Card, Button } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { SearchBar } from '../components/SearchBar';
+import { Snippet } from '../typescript/interfaces';
 
 export const Home = (): JSX.Element => {
-  const { snippets, getSnippets, searchResults } = useContext(SnippetsContext);
+  const { 
+    snippets, 
+    publicSnippets, 
+    getSnippets, 
+    getPublicSnippets, 
+    searchResults, 
+    publicTagCount, 
+    pagination, 
+    countPublicTags 
+  } = useContext(SnippetsContext);
+  const [filter, setFilter] = useState<string | null>(null);
+  const [localPublicSnippets, setLocalPublicSnippets] = useState<Snippet[]>([]);
 
   useEffect(() => {
     getSnippets();
+    getPublicSnippets();
+    countPublicTags();
   }, []);
+
+  useEffect(() => {
+    setLocalPublicSnippets([...publicSnippets]);
+    console.log('Public snippets updated:', publicSnippets);
+  }, [publicSnippets]);
+
+  useEffect(() => {
+    console.log('Public tag count updated:', publicTagCount);
+  }, [publicTagCount]);
+
+  const filterHandler = (tag: string) => {
+    setFilter(tag);
+    // Check if tags is an array of strings or an array of objects with name property
+    const filteredSnippets = publicSnippets.filter(snippet => {
+      if (Array.isArray(snippet.tags)) {
+        // If tags is an array of strings
+        if (typeof snippet.tags[0] === 'string') {
+          return snippet.tags.includes(tag);
+        }
+        // If tags is an array of objects with name property
+        else if (typeof snippet.tags[0] === 'object') {
+          return snippet.tags.some((t: any) => t.name === tag);
+        }
+      }
+      return false;
+    });
+    setLocalPublicSnippets(filteredSnippets);
+  };
+
+  const clearFilterHandler = () => {
+    setFilter(null);
+    setLocalPublicSnippets([...publicSnippets]);
+  };
+
+  const loadMoreHandler = () => {
+    if (pagination.page < pagination.totalPages) {
+      getPublicSnippets(pagination.page + 1);
+    }
+  };
 
   return (
     <Layout>
@@ -31,6 +84,62 @@ export const Home = (): JSX.Element => {
               </div>
             </Fragment>
           )}
+
+          <Fragment>
+            <PageHeader title='Public snippets' />
+            <div className='row'>
+              <div className='col-12 col-md-4 col-lg-3'>
+                <Card>
+                  <h5 className='card-title'>All snippets</h5>
+                  <div className='mb-3 d-flex justify-content-between'>
+                    <span>Total</span>
+                    <span>{pagination.total}</span>
+                  </div>
+                  <hr />
+
+                  <h5 className='card-title'>Filter by tags</h5>
+                  <Fragment>
+                    {publicTagCount.map((tag, idx) => {
+                      const isActiveFilter = filter === tag.name;
+                      return (
+                        <div
+                          key={idx}
+                          className={`d-flex justify-content-between cursor-pointer ${
+                            isActiveFilter && 'text-success'
+                          }`}
+                          onClick={() => filterHandler(tag.name)}
+                        >
+                          <span>{tag.name}</span>
+                          <span>{tag.count}</span>
+                        </div>
+                      );
+                    })}
+                  </Fragment>
+                  <div className='d-grid mt-3'>
+                    <Button
+                      text='Clear filters'
+                      color='secondary'
+                      small
+                      outline
+                      handler={clearFilterHandler}
+                    />
+                  </div>
+                </Card>
+              </div>
+              <div className='col-12 col-md-8 col-lg-9'>
+                <SnippetGrid snippets={localPublicSnippets} />
+                {pagination.page < pagination.totalPages && (
+                  <div className='d-grid mt-4'>
+                    <Button
+                      text='Load more'
+                      color='primary'
+                      handler={loadMoreHandler}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </Fragment>
         </Fragment>
       )}
     </Layout>

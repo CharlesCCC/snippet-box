@@ -1,6 +1,7 @@
 import { useRef, useEffect, KeyboardEvent, useContext } from 'react';
 import { SnippetsContext } from '../store';
 import { searchParser } from '../utils';
+import { SearchQuery } from '../typescript/interfaces';
 
 export const SearchBar = (): JSX.Element => {
   const { searchSnippets } = useContext(SnippetsContext);
@@ -11,13 +12,18 @@ export const SearchBar = (): JSX.Element => {
   }, [inputRef]);
 
   const inputHandler = (e: KeyboardEvent<HTMLInputElement>) => {
-    const query = searchParser(inputRef.current.value);
+    const parsedQuery = searchParser(inputRef.current.value);
+    const searchQuery: SearchQuery = {
+      query: parsedQuery.toString(),
+      tags: [],
+      languages: []
+    };
 
     if (e.key === 'Enter') {
-      searchSnippets(query);
+      searchSnippets(searchQuery);
     } else if (e.key === 'Escape') {
       inputRef.current.value = '';
-      searchSnippets(searchParser(inputRef.current.value));
+      searchSnippets({ query: '', tags: [], languages: [] });
     }
   };
 

@@ -277,18 +277,32 @@ export const deleteSnippet = asyncWrapper(
  */
 export const countTags = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const result = await sequelize.query(
-      `SELECT
+    const userId = (req as any).user?.id;
+    
+    let query = `
+      SELECT
         COUNT(tags.name) as count,
         tags.name
       FROM snippets_tags
       INNER JOIN tags ON snippets_tags.tag_id = tags.id
+      INNER JOIN snippets ON snippets_tags.snippet_id = snippets.id
+    `;
+    
+    if (userId) {
+      // Use quoted identifier for case-sensitive column name
+      query += `WHERE (snippets."userId" = ${userId} OR snippets.is_public = true)`;
+    } else {
+      query += `WHERE snippets.is_public = true`;
+    }
+    
+    query += `
       GROUP BY tags.name
-      ORDER BY name ASC`,
-      {
-        type: QueryTypes.SELECT
-      }
-    );
+      ORDER BY name ASC
+    `;
+
+    const result = await sequelize.query(query, {
+      type: QueryTypes.SELECT
+    });
 
     res.status(200).json({
       data: result
@@ -374,6 +388,87 @@ export const searchSnippets = asyncWrapper(
 
     res.status(200).json({
       data: snippets
+    });
+  }
+);
+
+/**
+ * @description Get all public snippets with pagination
+ * @route /api/snippets/public
+ * @request GET
+ */
+export const getAllSnippetsForPublic = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Get pagination parameters from query string
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    // Get total count of public snippets
+    const total = await SnippetModel.count({
+      where: { is_public: true }
+    });
+
+    // Get paginated public snippets
+    const snippets = await SnippetModel.findAll({
+      where: { is_public: true },
+      include: {
+        model: TagModel,
+        as: 'tags',
+        attributes: ['name'],
+        through: {
+          attributes: []
+        }
+      },
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']] // Order by newest first
+    });
+
+    const populatedSnippets = snippets.map(snippet => {
+      const rawSnippet = snippet.get({ plain: true });
+      return {
+        ...rawSnippet,
+        tags: rawSnippet.tags?.map(tag => tag.name)
+      };
+    });
+
+    res.status(200).json({
+      data: populatedSnippets,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  }
+);
+
+/**
+ * @description Count public tags only
+ * @route /api/snippets/statistics/public-tags
+ * @request GET
+ */
+export const countPublicTags = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const result = await sequelize.query(
+      `SELECT
+        COUNT(tags.name) as count,
+        tags.name
+      FROM snippets_tags
+      INNER JOIN tags ON snippets_tags.tag_id = tags.id
+      INNER JOIN snippets ON snippets_tags.snippet_id = snippets.id
+      WHERE snippets.is_public = true
+      GROUP BY tags.name
+      ORDER BY name ASC`,
+      {
+        type: QueryTypes.SELECT
+      }
+    );
+
+    res.status(200).json({
+      data: result
     });
   }
 );

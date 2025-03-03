@@ -33,21 +33,33 @@ axios.interceptors.request.use(
   }
 );
 
-export const SnippetsContext = createContext<Context>({
-  snippets: [],
-  searchResults: [],
-  currentSnippet: null,
-  tagCount: [],
-  getSnippets: () => {},
-  getSnippetById: (id: number) => {},
-  setSnippet: (id: number) => {},
-  createSnippet: (snippet: NewSnippet) => {},
-  updateSnippet: (snippet: NewSnippet, id: number, isLocal?: boolean) => {},
-  deleteSnippet: (id: number) => {},
-  toggleSnippetPin: (id: number) => {},
-  countTags: () => {},
-  searchSnippets: (query: SearchQuery) => {}
-});
+interface SnippetsContextType {
+  snippets: Snippet[];
+  publicSnippets: Snippet[];
+  searchResults: Snippet[];
+  currentSnippet: Snippet | null;
+  tagCount: TagCount[];
+  publicTagCount: TagCount[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  getSnippets: () => Promise<void>;
+  getPublicSnippets: (page?: number, limit?: number) => Promise<void>;
+  getSnippetById: (id: number) => void;
+  setSnippet: (id: number) => void;
+  createSnippet: (snippet: NewSnippet) => void;
+  updateSnippet: (snippet: NewSnippet, id: number, isLocal?: boolean) => void;
+  deleteSnippet: (id: number) => void;
+  toggleSnippetPin: (id: number) => void;
+  countTags: () => Promise<void>;
+  countPublicTags: () => Promise<void>;
+  searchSnippets: (query: SearchQuery) => Promise<void>;
+}
+
+export const SnippetsContext = createContext<SnippetsContextType>({} as SnippetsContextType);
 
 interface Props {
   children: JSX.Element | JSX.Element[];
@@ -55,9 +67,17 @@ interface Props {
 
 export const SnippetsContextProvider = (props: Props): JSX.Element => {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const [publicSnippets, setPublicSnippets] = useState<Snippet[]>([]);
   const [searchResults, setSearchResults] = useState<Snippet[]>([]);
   const [currentSnippet, setCurrentSnippet] = useState<Snippet | null>(null);
   const [tagCount, setTagCount] = useState<TagCount[]>([]);
+  const [publicTagCount, setPublicTagCount] = useState<TagCount[]>([]);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0
+  });
 
   const history = useHistory();
 
@@ -65,11 +85,31 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     history.push('/');
   };
 
-  const getSnippets = (): void => {
-    axios
-      .get<Response<Snippet[]>>('/api/snippets')
-      .then(res => setSnippets(res.data.data))
-      .catch(err => redirectOnError());
+  const getSnippets = async (): Promise<void> => {
+    try {
+      const { data } = await axios.get('/api/snippets');
+      setSnippets(data.data);
+    } catch (error) {
+      console.error('Error fetching snippets:', error);
+    }
+  };
+
+  const getPublicSnippets = async (page: number = 1, limit: number = 10): Promise<void> => {
+    try {
+      const { data } = await axios.get(`/api/snippets/public?page=${page}&limit=${limit}`);
+      
+      // If it's the first page, replace the snippets
+      // If it's a subsequent page, append the new snippets
+      if (page === 1) {
+        setPublicSnippets(data.data);
+      } else {
+        setPublicSnippets(prevSnippets => [...prevSnippets, ...data.data]);
+      }
+      
+      setPagination(data.pagination);
+    } catch (error) {
+      console.error('Error fetching public snippets:', error);
+    }
   };
 
   const getSnippetById = (id: number): void => {
@@ -159,29 +199,43 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const countTags = (): void => {
-    axios
-      .get<Response<TagCount[]>>('/api/snippets/statistics/count')
-      .then(res => setTagCount(res.data.data))
-      .catch(err => redirectOnError());
+  const countTags = async (): Promise<void> => {
+    try {
+      const { data } = await axios.get('/api/snippets/statistics/count');
+      setTagCount(data.data);
+    } catch (error) {
+      console.error('Error counting tags:', error);
+    }
   };
 
-  const searchSnippets = (query: SearchQuery): void => {
-    axios
-      .post<Response<Snippet[]>>('/api/snippets/search', query)
-      .then(res => {
-        setSearchResults(res.data.data);
-        console.log(res.data.data);
-      })
-      .catch(err => console.log(err));
+  const countPublicTags = async (): Promise<void> => {
+    try {
+      const { data } = await axios.get('/api/snippets/statistics/public-tags');
+      setPublicTagCount(data.data);
+    } catch (error) {
+      console.error('Error counting public tags:', error);
+    }
+  };
+
+  const searchSnippets = async (query: SearchQuery): Promise<void> => {
+    try {
+      const { data } = await axios.post('/api/snippets/search', query);
+      setSearchResults(data.data);
+    } catch (error) {
+      console.error('Error searching snippets:', error);
+    }
   };
 
   const context = {
     snippets,
+    publicSnippets,
     searchResults,
     currentSnippet,
     tagCount,
+    publicTagCount,
+    pagination,
     getSnippets,
+    getPublicSnippets,
     getSnippetById,
     setSnippet,
     createSnippet,
@@ -189,6 +243,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     deleteSnippet,
     toggleSnippetPin,
     countTags,
+    countPublicTags,
     searchSnippets
   };
 

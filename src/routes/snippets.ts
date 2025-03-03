@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import {
   countTags,
+  countPublicTags,
   createSnippet,
   deleteSnippet,
   getAllSnippets,
+  getAllSnippetsForPublic,
   getRawCode,
   getSnippet,
   searchSnippets,
@@ -15,12 +17,11 @@ import { protect } from '../middleware/auth';
 export const snippetRouter = Router();
 
 // Public routes - accessible without authentication
-// snippetRouter.route('/:id').get(getSnippet);
-snippetRouter.route('/statistics/count').get(countTags);
+snippetRouter.route('/public').get(getAllSnippetsForPublic);
+snippetRouter.route('/statistics/public-tags').get(countPublicTags);
 snippetRouter.route('/raw/:id').get(getRawCode);
 snippetRouter.route('/search').post(searchSnippets);
 
-//TODO: getAllSnippets should be public for unauthenticated users
 // Protected routes - require authentication
 snippetRouter
   .route('/')
@@ -32,3 +33,7 @@ snippetRouter
   .get(protect, getSnippet)
   .put(protect, updateSnippet)
   .delete(protect, deleteSnippet);
+
+snippetRouter
+  .route('/statistics/count')
+  .get(protect, countTags);
