@@ -1,6 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../db';
 import { Snippet, SnippetCreationAttributes } from '../typescript/interfaces';
+import { UserModel } from './User';
 
 const { INTEGER, STRING, DATE, TEXT } = DataTypes;
 
@@ -43,6 +44,14 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
       allowNull: true,
       defaultValue: 0
     },
+    userId: {
+      type: INTEGER,
+      allowNull: true, // Make nullable for backward compatibility with existing data
+      references: {
+        model: 'users',
+        key: 'id'
+      }
+    },
     createdAt: {
       type: DATE
     },
@@ -62,3 +71,7 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
     tableName: 'snippets'
   }
 );
+
+// Set up relation between User and Snippet
+UserModel.hasMany(SnippetModel, { foreignKey: 'userId' });
+SnippetModel.belongsTo(UserModel, { foreignKey: 'userId' });

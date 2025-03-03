@@ -124,3 +124,45 @@ Visit wiki for search functionality and available filters reference: [Search fun
 - **Boolean Fields**: The `favorite` and `is_public` fields are stored as BOOLEAN in the database but may be passed as strings in API requests. The controllers handle this conversion.
 
 If you encounter an error like `invalid input syntax for type integer: "false"` when creating or updating snippets, it's likely due to a type mismatch between the API request and the database schema.
+
+## Authentication
+
+Snippet Box now includes a comprehensive authentication system that allows users to:
+
+- Register with email and password
+- Login to access their snippets
+- Logout to end their session
+- Reset forgotten passwords
+- Update their account details and password
+
+### Authentication Endpoints
+
+| Endpoint | Method | Description | Authentication Required |
+|----------|--------|-------------|------------------------|
+| `/api/auth/register` | POST | Register a new user | No |
+| `/api/auth/login` | POST | Login with email and password | No |
+| `/api/auth/logout` | GET | Logout and clear cookie | No |
+| `/api/auth/me` | GET | Get current user details | Yes |
+| `/api/auth/updatedetails` | PUT | Update user email | Yes |
+| `/api/auth/updatepassword` | PUT | Update user password | Yes |
+| `/api/auth/forgotpassword` | POST | Request password reset | No |
+| `/api/auth/resetpassword/:resettoken` | PUT | Reset password with token | No |
+
+### Snippet Privacy
+
+With authentication enabled, snippets are now private by default and only visible to their creator. Users can make snippets public by setting the `is_public` field to `true` when creating or updating a snippet.
+
+### Authentication Flow
+
+1. Register a user with email and password
+2. Login to receive a JWT token (stored in an HTTP-only cookie)
+3. Access protected routes with the token
+4. Logout to invalidate the token
+
+### Environment Variables
+
+The authentication system uses the following environment variables:
+
+- `JWT_SECRET`: Secret key for JWT token generation (default: 'snippetboxsecret')
+- `JWT_EXPIRE`: JWT token expiration time (default: '30d')
+- `JWT_COOKIE_EXPIRE`: Cookie expiration time in days (default: 30)

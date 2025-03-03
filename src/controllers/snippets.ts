@@ -18,7 +18,8 @@ export const createSnippet = asyncWrapper(
       ...req.body,
       favorite: req.body.favorite === 'true' || req.body.favorite === true,
       is_public: req.body.is_public === 'true' || req.body.is_public === true,
-      isPinned: req.body.isPinned === 'true' || req.body.isPinned === true ? 1 : 0
+      isPinned: req.body.isPinned === 'true' || req.body.isPinned === true ? 1 : 0,
+      userId: (req as any).user?.id
     };
 
     // Get tags from request body
@@ -56,7 +57,21 @@ export const createSnippet = asyncWrapper(
  */
 export const getAllSnippets = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Get the current user ID from request (if authenticated)
+    const userId = (req as any).user?.id;
+    
+    // Build the where clause based on authentication status
+    const whereClause = userId 
+      ? { 
+          [Op.or]: [
+            { userId }, // User's own snippets
+            { is_public: true } // Public snippets
+          ]
+        } 
+      : { is_public: true }; // Only public snippets for unauthenticated users
+    
     const snippets = await SnippetModel.findAll({
+      where: whereClause,
       include: {
         model: TagModel,
         as: 'tags',
@@ -110,6 +125,21 @@ export const getSnippet = asyncWrapper(
       );
     }
 
+    // Check if user has access to this snippet
+    const userId = (req as any).user?.id;
+    const isPublic = snippet.get('is_public');
+    const snippetUserId = snippet.get('userId');
+
+    // If snippet is private and user is not the owner, deny access
+    if (!isPublic && userId !== snippetUserId) {
+      return next(
+        new ErrorResponse(
+          403,
+          'Not authorized to access this snippet'
+        )
+      );
+    }
+
     const rawSnippet = snippet.get({ plain: true });
     const populatedSnippet = {
       ...rawSnippet,
@@ -138,6 +168,20 @@ export const updateSnippet = asyncWrapper(
         new ErrorResponse(
           404,
           `Snippet with id of ${req.params.id} was not found`
+        )
+      );
+    }
+
+    // Check if user owns this snippet
+    const userId = (req as any).user?.id;
+    const snippetUserId = snippet.get('userId');
+
+    // If user is not the owner, deny access
+    if (userId !== snippetUserId) {
+      return next(
+        new ErrorResponse(
+          403,
+          'Not authorized to update this snippet'
         )
       );
     }
@@ -192,6 +236,20 @@ export const deleteSnippet = asyncWrapper(
         new ErrorResponse(
           404,
           `Snippet with id of ${req.params.id} was not found`
+        )
+      );
+    }
+
+    // Check if user owns this snippet
+    const userId = (req as any).user?.id;
+    const snippetUserId = snippet.get('userId');
+
+    // If user is not the owner, deny access
+    if (userId !== snippetUserId) {
+      return next(
+        new ErrorResponse(
+          403,
+          'Not authorized to delete this snippet'
         )
       );
     }
