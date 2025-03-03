@@ -2,13 +2,17 @@ import path from 'path';
 import { Sequelize } from 'sequelize';
 import Umzug from 'umzug';
 import { Logger } from '../utils';
+import * as dotenv from 'dotenv';
+
+// Load environment variables first
+// dotenv.config({ path: '../config/.env' });
+dotenv.config({ path: './src/config/.env' });
 
 const logger = new Logger('db');
 
-// DB config
-export const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: 'data/db.sqlite3',
+// Updated DB config for PostgreSQL
+export const sequelize = new Sequelize(process.env.POSTGRES_URL!, {
+  dialect: 'postgres',
   logging: false
 });
 
