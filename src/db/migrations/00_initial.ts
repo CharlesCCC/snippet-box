@@ -1,5 +1,5 @@
 import { DataTypes, QueryInterface } from 'sequelize';
-const { INTEGER, STRING, DATE, TEXT } = DataTypes;
+const { INTEGER, STRING, DATE, TEXT, BOOLEAN } = DataTypes;
 
 export const up = async (queryInterface: QueryInterface): Promise<void> => {
   await queryInterface.createTable('snippets', {
@@ -30,6 +30,14 @@ export const up = async (queryInterface: QueryInterface): Promise<void> => {
       type: TEXT,
       allowNull: true,
       defaultValue: ''
+    },
+    favorite: {
+      type: BOOLEAN,
+      defaultValue: false
+    },
+    is_public: {
+      type: BOOLEAN,
+      defaultValue: false
     },
     createdAt: {
       type: DATE,

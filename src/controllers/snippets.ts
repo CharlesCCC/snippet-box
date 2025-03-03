@@ -13,16 +13,24 @@ import { Body, SearchQuery } from '../typescript/interfaces';
  */
 export const createSnippet = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Convert boolean values from string to proper boolean
+    const body = {
+      ...req.body,
+      favorite: req.body.favorite === 'true' || req.body.favorite === true,
+      is_public: req.body.is_public === 'true' || req.body.is_public === true,
+      isPinned: req.body.isPinned === 'true' || req.body.isPinned === true ? 1 : 0
+    };
+
     // Get tags from request body
-    const { language, tags: requestTags } = <Body>req.body;
+    const { language, tags: requestTags } = body;
     const parsedRequestTags = tagParser([
       ...requestTags,
       language.toLowerCase()
     ]);
 
-    // Create snippet
+    // Create snippet with converted boolean values
     const snippet = await SnippetModel.create({
-      ...req.body,
+      ...body,
       tags: [...parsedRequestTags].join(',')
     });
 
@@ -134,13 +142,21 @@ export const updateSnippet = asyncWrapper(
       );
     }
 
+    // Convert boolean values
+    const body = {
+      ...req.body,
+      favorite: req.body.favorite === 'true' || req.body.favorite === true,
+      is_public: req.body.is_public === 'true' || req.body.is_public === true,
+      isPinned: req.body.isPinned === 'true' || req.body.isPinned === true ? 1 : 0
+    };
+
     // Get tags from request body
-    const { language, tags: requestTags } = <Body>req.body;
+    const { language, tags: requestTags } = <Body>body;
     let parsedRequestTags = tagParser([...requestTags, language.toLowerCase()]);
 
     // Update snippet
     snippet = await snippet.update({
-      ...req.body,
+      ...body,
       tags: [...parsedRequestTags].join(',')
     });
 

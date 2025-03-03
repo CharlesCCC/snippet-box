@@ -8,6 +8,8 @@ export interface Snippet extends Model {
   code: string;
   docs: string;
   isPinned: number;
+  favorite: boolean;
+  is_public: boolean;
   tags?: { name: string }[];
 }
 

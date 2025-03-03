@@ -115,3 +115,12 @@ Follow instructions from wiki - [Installation without Docker](https://github.com
 ### Search functionality
 
 Visit wiki for search functionality and available filters reference: [Search functionality](https://github.com/pawelmalak/snippet-box/wiki/Search-functionality)
+
+## Known Issues and Fixes
+
+### Data Type Conversions
+
+- **isPinned Field**: The `isPinned` field is stored as an INTEGER in the database (0 for false, 1 for true), but is handled as a boolean in the API requests. The controllers automatically convert between these formats.
+- **Boolean Fields**: The `favorite` and `is_public` fields are stored as BOOLEAN in the database but may be passed as strings in API requests. The controllers handle this conversion.
+
+If you encounter an error like `invalid input syntax for type integer: "false"` when creating or updating snippets, it's likely due to a type mismatch between the API request and the database schema.

@@ -48,6 +48,14 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
     },
     updatedAt: {
       type: DATE
+    },
+    favorite: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    is_public: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   },
   {
