@@ -1,4 +1,4 @@
-import { useState, createContext } from 'react';
+import { useState, createContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -9,6 +9,29 @@ import {
   NewSnippet,
   SearchQuery
 } from '../typescript/interfaces';
+
+// Set up axios interceptor for authentication
+axios.interceptors.request.use(
+  (config) => {
+    const token = document.cookie
+      .split(';')
+      .find(cookie => cookie.trim().startsWith('token='));
+    
+    console.log('Interceptor token:', token);
+    
+    if (token) {
+      const tokenValue = token.split('=')[1];
+      config.headers.Authorization = `Bearer ${tokenValue}`;
+    } else {
+      console.warn('No token found in cookies');
+    }
+    return config;
+  },
+  (error) => {
+    console.error('Interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
 
 export const SnippetsContext = createContext<Context>({
   snippets: [],

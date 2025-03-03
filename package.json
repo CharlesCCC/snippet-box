@@ -20,7 +20,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/cookie-parser": "^1.4.6",
+    "@types/cookie-parser": "^1.4.8",
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^16.9.2",
@@ -33,7 +33,7 @@
   "dependencies": {
     "@types/umzug": "^2.3.2",
     "bcryptjs": "^2.4.3",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^10.0.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",

@@ -16,42 +16,40 @@ export const protect = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     let token;
 
-    // Check if token exists in headers or cookies
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
-    ) {
-      // Set token from Bearer token in header
-      token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.token) {
-      // Set token from cookie
-      token = req.cookies.token;
-    }
+    // Debug logging
+    // console.log('Headers:', req.headers.cookie);
+    // Check both authorization header AND cookies
+    const cookies = req.headers.cookie?.split(';').reduce((acc: {[key: string]: string}, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
 
-    // Make sure token exists
+    token = cookies?.token || req.headers.authorization?.split(' ')[1];
+
+    console.log('Token:', token);
     if (!token) {
-      return next(new ErrorResponse(401, 'Not authorized to access this route'));
+      console.log('No token found in cookies or headers');
+      return next(new ErrorResponse(401, 'No authentication token found'));
     }
 
     try {
-      // Verify token
       const decoded = jwt.verify(
-        token,
+        token, 
         process.env.JWT_SECRET || 'snippetboxsecret'
       ) as DecodedToken;
 
-      // Find user by id
       const user = await UserModel.findByPk(decoded.id);
-
+      
       if (!user) {
-        return next(new ErrorResponse(404, 'User not found'));
+        return next(new ErrorResponse(404, 'User belonging to this token does not exist'));
       }
 
-      // Add user to request object
-      (req as any).user = user;
+      // Add proper typing for user
+      (req as any).user = user.get({ plain: true });
       next();
     } catch (err) {
-      return next(new ErrorResponse(401, 'Not authorized to access this route'));
+      return next(new ErrorResponse(401, 'Invalid or expired authentication token'));
     }
   }
 ); 

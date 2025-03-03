@@ -60,6 +60,10 @@ export const getAllSnippets = asyncWrapper(
     // Get the current user ID from request (if authenticated)
     const userId = (req as any).user?.id;
     
+    // Add debug logging to inspect the request and user object
+    console.log('Request user:', (req as any).user);
+    console.log('User ID:', userId);
+
     // Build the where clause based on authentication status
     const whereClause = userId 
       ? { 
@@ -70,6 +74,8 @@ export const getAllSnippets = asyncWrapper(
         } 
       : { is_public: true }; // Only public snippets for unauthenticated users
     
+    console.log('Where clause:', whereClause);
+
     const snippets = await SnippetModel.findAll({
       where: whereClause,
       include: {
@@ -82,9 +88,10 @@ export const getAllSnippets = asyncWrapper(
       }
     });
 
+    console.log('Found snippets:', snippets.length);
+
     const populatedSnippets = snippets.map(snippet => {
       const rawSnippet = snippet.get({ plain: true });
-
       return {
         ...rawSnippet,
         tags: rawSnippet.tags?.map(tag => tag.name)
