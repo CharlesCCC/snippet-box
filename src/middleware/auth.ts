@@ -29,27 +29,31 @@ export const protect = asyncWrapper(
 
     console.log('Token:', token);
     if (!token) {
-      console.log('No token found in cookies or headers');
-      return next(new ErrorResponse(401, 'No authentication token found'));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token, 
-        process.env.JWT_SECRET || 'snippetboxsecret'
-      ) as DecodedToken;
-
-      const user = await UserModel.findByPk(decoded.id);
-      
-      if (!user) {
-        return next(new ErrorResponse(404, 'User belonging to this token does not exist'));
+      // Allow public access to root path
+      if (req.path === '/') {
+        return next();
       }
-
-      // Add proper typing for user
-      (req as any).user = user.get({ plain: true });
-      next();
-    } catch (err) {
-      return next(new ErrorResponse(401, 'Invalid or expired authentication token'));
+      // Redirect to login for other paths
+      return res.redirect('/login');
+    } else {
+      try {
+        const decoded = jwt.verify(
+          token, 
+          process.env.JWT_SECRET || 'snippetboxsecret'
+        ) as DecodedToken;
+  
+        const user = await UserModel.findByPk(decoded.id);
+        
+        if (!user) {
+          return next(new ErrorResponse(404, 'User belonging to this token does not exist'));
+        }
+  
+        // Add proper typing for user
+        (req as any).user = user.get({ plain: true });
+        next();
+      } catch (err) {
+        return next(new ErrorResponse(401, 'Invalid or expired authentication token'));
+      }
     }
   }
 ); 
