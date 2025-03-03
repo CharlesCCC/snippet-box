@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { Route } from '../../typescript/interfaces';
-import { routes as clientRoutes } from './routes.json';
+import routesData from './routes.json';
 
 export const Navbar = (): JSX.Element => {
-  const routes = clientRoutes as Route[];
+  const routes = routesData.routes as Route[];
 
   return (
     <nav className='navbar navbar-dark bg-dark navbar-expand'>
