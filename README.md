@@ -152,6 +152,47 @@ Snippet Box now includes a comprehensive authentication system that allows users
 
 With authentication enabled, snippets are now private by default and only visible to their creator. Users can make snippets public by setting the `is_public` field to `true` when creating or updating a snippet.
 
+### Public vs Private Snippets
+
+- **Public Snippets**: Snippets with `is_public` set to `true` are accessible to anyone, even without authentication. These can be accessed directly via URL (e.g., `http://localhost:3000/snippet/6`) or through the API (`http://localhost:3000/api/snippets/6`).
+
+- **Private Snippets**: Snippets with `is_public` set to `false` (default) are only accessible to their creator. Users must be authenticated to access their own private snippets.
+
+### Accessing Snippets
+
+- **Unauthenticated Users**: Can only access public snippets.
+- **Authenticated Users**: Can access their own private snippets and all public snippets.
+
+#### API Access
+
+- **Public Snippets**: Can be accessed directly via API without authentication: `/api/snippets/{id}`
+- **Private Snippets**: Require authentication to access. The user must be logged in and have a valid token.
+
+#### Web Access
+
+- **Public Snippets**: Can be accessed directly via URL: `/snippet/{id}`
+- **Private Snippets**: Require the user to be logged in. If not logged in, the user will be redirected to the login page.
+
+### Troubleshooting Access Issues
+
+If you're having trouble accessing snippets:
+
+1. **For Public Snippets**: 
+   - Ensure the snippet has `is_public` set to `true` in the database.
+   - Check the browser console for any API errors.
+
+2. **For Private Snippets**:
+   - Make sure you're logged in as the creator of the snippet.
+   - Check that your authentication token is valid and not expired.
+   - Try logging out and logging back in to refresh your token.
+   - Verify that the snippet's `userId` matches your user ID.
+
+3. **Common Issues**:
+   - **403 Forbidden**: This means you're authenticated but don't have permission to access the snippet. Check if you're the owner of the snippet.
+   - **401 Unauthorized**: This means you're not authenticated. Try logging in again.
+   - **Redirect to Login**: This happens when you try to access a private snippet without being logged in.
+   - **Redirect to Root**: This can happen if there's an issue with your authentication token. Try logging out and logging back in.
+
 ### Authentication Flow
 
 1. Register a user with email and password
