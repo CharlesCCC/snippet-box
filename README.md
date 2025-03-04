@@ -320,3 +320,40 @@ To fix these issues:
 1. Make sure you're logged in if trying to access a private snippet
 2. Check that the snippet is either public or owned by you
 3. If you're a server administrator, ensure that API routes are properly configured in the server.ts file
+
+### Likes Functionality
+
+Snippet Box includes a like system that allows users to like snippets and see how many likes each snippet has received.
+
+#### Like API Endpoints
+
+| Endpoint | Method | Description | Authentication Required |
+|----------|--------|-------------|------------------------|
+| `/api/likes/:id` | POST | Like a snippet | Yes |
+| `/api/likes/:id` | DELETE | Unlike a snippet | Yes |
+| `/api/likes/check/:id` | GET | Check if user has liked a snippet | Optional |
+
+#### How Likes Work
+
+1. **Liking a Snippet**: Authenticated users can like a snippet by sending a POST request to `/api/likes/:id`. This increments the snippet's like count and records the user's like.
+2. **Unliking a Snippet**: Users can remove their like by sending a DELETE request to `/api/likes/:id`. This decrements the snippet's like count and removes the user's like record.
+3. **Checking Like Status**: The `/api/likes/check/:id` endpoint returns whether the current user has liked a snippet and the total number of likes.
+
+#### Authentication for Likes
+
+- **Liking/Unliking**: Requires authentication. The `protect` middleware ensures that only authenticated users can like or unlike snippets.
+- **Checking Like Status**: Authentication is optional. The endpoint will return the total like count for all users, but will only show the user's personal like status (`liked: true/false`) if they are authenticated.
+
+#### Troubleshooting Like Issues
+
+If you're having trouble with the likes functionality:
+
+1. **Like Status Not Showing Correctly**: 
+   - For authenticated users: Make sure your authentication token is valid.
+   - For unauthenticated users: The `liked` field will always be `false`, but you should still see the total `likes_count`.
+2. **Unable to Like**: Ensure you're authenticated and have a valid token. Check the browser console for any API errors.
+3. **Like Count Not Updating**: The like count is stored in the snippet record. If it's not updating, there might be an issue with the transaction that updates both the like record and the snippet's like count.
+
+#### Recent Fixes
+
+- Added the `optionalProtect` middleware to the `/api/likes/check/:id` route to allow both authenticated and unauthenticated users to check the like count. Authenticated users will see their personal like status, while unauthenticated users will only see the total like count.

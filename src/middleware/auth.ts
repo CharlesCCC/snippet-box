@@ -96,4 +96,59 @@ export const protect = asyncWrapper(
       return res.redirect('/login');
     }
   }
+);
+
+// Optional protect middleware - doesn't block unauthenticated users
+export const optionalProtect = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    let token;
+    
+    // Debug logging
+    console.log('Optional Auth middleware - Request path:', req.path);
+    console.log('Optional Auth middleware - Request method:', req.method);
+    
+    // Check both authorization header AND cookies
+    const cookies = req.headers.cookie?.split(';').reduce((acc: {[key: string]: string}, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+
+    token = cookies?.token || req.headers.authorization?.split(' ')[1];
+
+    console.log('Token:', token ? 'Present' : 'Not present');
+
+    // If no token is present, just continue without attaching user
+    if (!token) {
+      console.log('Optional Auth middleware - No token, continuing without user');
+      return next();
+    } 
+    
+    // If token is present, verify it
+    try {
+      console.log('Optional Auth middleware - Verifying token');
+      const decoded = jwt.verify(
+        token, 
+        process.env.JWT_SECRET || 'snippetboxsecret'
+      ) as DecodedToken;
+
+      console.log('Optional Auth middleware - Token decoded, user ID:', decoded.id);
+      const user = await UserModel.findByPk(decoded.id);
+      
+      if (!user) {
+        console.log('Optional Auth middleware - User not found');
+        // Don't block, just continue without user
+        return next();
+      }
+
+      console.log('Optional Auth middleware - User authenticated:', user.get('id'));
+      // Add proper typing for user
+      (req as any).user = user.get({ plain: true });
+      return next();
+    } catch (err) {
+      console.log('Optional Auth middleware - Token verification failed:', err);
+      // Don't block, just continue without user
+      return next();
+    }
+  }
 ); 

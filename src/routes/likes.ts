@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { likeSnippet, unlikeSnippet, checkLiked } from '../controllers/likes';
-import { protect } from '../middleware/auth';
+import { protect, optionalProtect } from '../middleware/auth';
 
 const router = Router();
 
@@ -9,6 +9,6 @@ const router = Router();
 
 // Routes
 router.route('/:id').post(protect,likeSnippet).delete(protect,unlikeSnippet);
-router.route('/check/:id').get(checkLiked);
+router.route('/check/:id').get(optionalProtect, checkLiked);
 
 export default router; 
