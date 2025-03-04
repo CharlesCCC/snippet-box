@@ -6,13 +6,14 @@ import { Badge, Button, Card } from '../UI';
 import { SnippetsContext } from '../../store';
 import copy from 'clipboard-copy';
 import { SnippetPin } from './SnippetPin';
+import { SnippetPublic } from './SnippetPublic';
 
 interface Props {
   snippet: Snippet;
 }
 
 export const SnippetCard = (props: Props): JSX.Element => {
-  const { title, description, language, code, id, createdAt, isPinned } =
+  const { title, description, language, code, id, createdAt, isPinned, is_public } =
     props.snippet;
   const { setSnippet } = useContext(SnippetsContext);
 
@@ -25,7 +26,12 @@ export const SnippetCard = (props: Props): JSX.Element => {
       {/* TITLE */}
       <h5 className='card-title d-flex align-items-center justify-content-between'>
         {title}
-        <SnippetPin id={id} isPinned={isPinned} />
+        <div className='d-flex align-items-center'>
+          <div className='me-2'>
+            <SnippetPublic id={id} is_public={is_public} />
+          </div>
+          <SnippetPin id={id} isPinned={isPinned} />
+        </div>
       </h5>
 
       <h6 className='card-subtitle mb-2 text-muted'>

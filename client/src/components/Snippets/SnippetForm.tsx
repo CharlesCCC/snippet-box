@@ -26,7 +26,8 @@ export const SnippetForm = (props: Props): JSX.Element => {
     code: '',
     docs: '',
     isPinned: false,
-    tags: []
+    tags: [],
+    is_public: false
   });
 
   useEffect(() => {
@@ -43,6 +44,13 @@ export const SnippetForm = (props: Props): JSX.Element => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const checkboxHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.checked
     });
   };
 
@@ -145,6 +153,24 @@ export const SnippetForm = (props: Props): JSX.Element => {
               <div className='form-text'>
                 Tags should be separated with a comma. Language tag will be
                 added automatically
+              </div>
+            </div>
+
+            {/* PUBLIC/PRIVATE TOGGLE */}
+            <div className='mb-3 form-check'>
+              <input
+                type='checkbox'
+                className='form-check-input'
+                id='is_public'
+                name='is_public'
+                checked={formData.is_public || false}
+                onChange={e => checkboxHandler(e)}
+              />
+              <label className='form-check-label' htmlFor='is_public'>
+                Make this snippet public
+              </label>
+              <div className='form-text'>
+                Public snippets can be viewed by anyone, even without logging in
               </div>
             </div>
             <hr />

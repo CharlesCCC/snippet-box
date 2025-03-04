@@ -8,6 +8,7 @@ export interface NewSnippet {
   docs?: string;
   isPinned: boolean;
   tags: string[];
+  is_public?: boolean;
 }
 
 export interface Snippet extends Model, NewSnippet {}

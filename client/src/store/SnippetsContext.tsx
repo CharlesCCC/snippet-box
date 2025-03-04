@@ -54,6 +54,7 @@ interface SnippetsContextType {
   updateSnippet: (snippet: NewSnippet, id: number, isLocal?: boolean) => void;
   deleteSnippet: (id: number) => void;
   toggleSnippetPin: (id: number) => void;
+  toggleSnippetPublic: (id: number) => void;
   countTags: () => Promise<void>;
   countPublicTags: () => Promise<void>;
   searchSnippets: (query: SearchQuery) => Promise<void>;
@@ -199,6 +200,14 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
+  const toggleSnippetPublic = (id: number): void => {
+    const snippet = snippets.find(s => s.id === id);
+
+    if (snippet) {
+      updateSnippet({ ...snippet, is_public: !snippet.is_public }, id, true);
+    }
+  };
+
   const countTags = async (): Promise<void> => {
     try {
       const { data } = await axios.get('/api/snippets/statistics/count');
@@ -242,6 +251,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     updateSnippet,
     deleteSnippet,
     toggleSnippetPin,
+    toggleSnippetPublic,
     countTags,
     countPublicTags,
     searchSnippets
