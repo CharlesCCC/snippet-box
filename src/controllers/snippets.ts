@@ -69,7 +69,7 @@ export const getAllSnippets = asyncWrapper(
       ? { 
           [Op.or]: [
             { userId }, // User's own snippets
-            { is_public: true } // Public snippets
+            // { is_public: true } // Public snippets
           ]
         } 
       : { is_public: true }; // Only public snippets for unauthenticated users
@@ -197,8 +197,11 @@ export const updateSnippet = asyncWrapper(
     const userId = (req as any).user?.id;
     const snippetUserId = snippet.get('userId');
 
+    console.log('updateSnippet userId', userId);
+    console.log('updateSnippet snippetUserId', snippetUserId);
+
     // If user is not the owner, deny access
-    if (userId !== snippetUserId) {
+    if (Number(userId) !== Number(snippetUserId)) {
       return next(
         new ErrorResponse(
           403,
