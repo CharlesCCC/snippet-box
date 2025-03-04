@@ -7,13 +7,14 @@ import { SnippetsContext } from '../../store';
 import copy from 'clipboard-copy';
 import { SnippetPin } from './SnippetPin';
 import { SnippetPublic } from './SnippetPublic';
+import { SnippetLike } from './SnippetLike';
 
 interface Props {
   snippet: Snippet;
 }
 
 export const SnippetCard = (props: Props): JSX.Element => {
-  const { title, description, language, code, id, createdAt, isPinned, is_public } =
+  const { title, description, language, code, id, createdAt, isPinned, is_public, likes_count = 0 } =
     props.snippet;
   const { setSnippet } = useContext(SnippetsContext);
 
@@ -44,7 +45,10 @@ export const SnippetCard = (props: Props): JSX.Element => {
 
       <div className='mt-auto'>
         {/* UPDATE DATE */}
-        <p>Created {dateParser(createdAt).relative}</p>
+        <div className="d-flex align-items-center justify-content-between">
+          <p className="mb-0 small">Created {dateParser(createdAt).relative}</p>
+          <SnippetLike id={id} likes_count={likes_count} />
+        </div>
         <hr />
 
         {/* ACTIONS */}
