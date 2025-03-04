@@ -137,7 +137,7 @@ export const unlikeSnippet = asyncWrapper(
  */
 export const checkLiked = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    // const userId = (req as any).user.id;
+    const userId = (req as any).user?.id;
     const snippetId = parseInt(req.params.id);
 
     // Check if snippet exists
@@ -146,18 +146,22 @@ export const checkLiked = asyncWrapper(
       return next(new ErrorResponse(404, `Snippet with id ${snippetId} not found`));
     }
 
-    // Check if liked
-    const existingLike = await SnippetLikeModel.findOne({
-      where: {
-        // userId,
-        snippetId
-      }
-    });
+    // Check if liked - only if user is authenticated
+    let liked = false;
+    if (userId) {
+      const existingLike = await SnippetLikeModel.findOne({
+        where: {
+          userId,
+          snippetId
+        }
+      });
+      liked = !!existingLike;
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        liked: !!existingLike,
+        liked,
         likes_count: snippet.likes_count
       }
     });
