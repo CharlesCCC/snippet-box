@@ -10,6 +10,7 @@ import {
   getSnippet,
   searchSnippets,
   updateSnippet,
+  toggleLike
 } from "../controllers/snippets";
 import { requireBody } from "../middleware";
 import { protect } from "../middleware/auth";
@@ -38,3 +39,6 @@ snippetRouter
   .get(protect, getSnippet)
   .put(protect, updateSnippet)
   .delete(protect, deleteSnippet);
+
+// Like endpoint
+snippetRouter.route("/:id/like").put(protect, toggleLike);

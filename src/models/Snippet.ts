@@ -65,6 +65,11 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
     is_public: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    likes_count: {
+      type: INTEGER,
+      allowNull: false,
+      defaultValue: 0
     }
   },
   {

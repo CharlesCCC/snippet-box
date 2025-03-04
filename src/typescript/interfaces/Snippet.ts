@@ -12,7 +12,8 @@ export interface Snippet extends Model {
   is_public: boolean;
   userId?: number;
   tags?: { name: string }[];
+  likes_count: number;
 }
 
 export interface SnippetCreationAttributes
-  extends Optional<Snippet, 'id' | 'createdAt' | 'updatedAt'> {}
+  extends Optional<Snippet, 'id' | 'createdAt' | 'updatedAt' | 'likes_count'> {}

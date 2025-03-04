@@ -4,3 +4,5 @@ export * from './Tag';
 export * from './Snippet_Tag';
 export * from './Body';
 export * from './SearchQuery';
+export * from './UserSavedSnippet';
+export * from './SnippetLike';

@@ -89,6 +89,12 @@ Follow instructions from wiki - [Installation without Docker](https://github.com
   - Search your snippets with built-in tags and language filters
 - Pinned snippets
   - Pin your favorite / important snippets to home screen for easy and quick access
+- Like snippets
+  - Like snippets to show appreciation for useful code
+  - See how many users have liked each snippet
+- Save snippets
+  - Save snippets (including those created by others) to your personal collection
+  - Access your saved snippets from the "Saved" page
 
 ![Homescreen screenshot](./.github/img/home.png)
 

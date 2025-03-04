@@ -10,6 +10,7 @@ export interface NewSnippet {
   tags: string[];
   is_public?: boolean;
   userId?: number;
+  likes_count?: number;
 }
 
 export interface Snippet extends Model, NewSnippet {}

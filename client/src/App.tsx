@@ -1,6 +1,6 @@
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { Navbar } from './components/Navigation/Navbar';
-import { Editor, Home, Snippet, Snippets } from './containers';
+import { Editor, Home, Snippet, Snippets, SavedSnippets } from './containers';
 import { 
   Login, 
   Register, 
@@ -32,6 +32,7 @@ export const App = () => {
             <ProtectedRoute path='/editor/:id?' component={Editor} />
             <ProtectedRoute path='/profile' component={UpdateProfile} />
             <ProtectedRoute path='/update-password' component={UpdatePassword} />
+            <ProtectedRoute path='/saved' component={SavedSnippets} />
           </Switch>
         </SnippetsContextProvider>
       </AuthProvider>

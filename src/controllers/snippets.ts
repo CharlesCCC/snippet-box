@@ -620,3 +620,43 @@ export const countPublicTags = asyncWrapper(
     });
   }
 );
+
+/**
+ * @description Toggle like status of a snippet
+ * @route /api/snippets/:id/like
+ * @request PUT
+ */
+export const toggleLike = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const id = parseInt(req.params.id);
+    const userId = (req as any).user?.id;
+
+    // Find snippet
+    const snippet = await SnippetModel.findByPk(id);
+
+    if (!snippet) {
+      return next(new ErrorResponse(404, `Snippet with id ${id} not found`));
+    }
+
+    // Check if user is authorized to like this snippet
+    // For private snippets, only the owner can like it
+    if (!snippet.is_public && userId && snippet.userId !== userId) {
+      return next(
+        new ErrorResponse(403, 'Not authorized to like this snippet')
+      );
+    }
+
+    // Toggle the favorite (like) status
+    const updatedSnippet = await snippet.update({
+      favorite: !snippet.favorite
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: updatedSnippet.id,
+        favorite: updatedSnippet.favorite
+      }
+    });
+  }
+);

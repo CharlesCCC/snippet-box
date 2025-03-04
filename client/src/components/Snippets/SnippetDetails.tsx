@@ -6,6 +6,8 @@ import { dateParser } from '../../utils';
 import { Badge, Button, Card } from '../UI';
 import copy from 'clipboard-copy';
 import { SnippetPin } from './SnippetPin';
+import { SnippetLike } from './SnippetLike';
+import { SnippetSave } from './SnippetSave';
 import { AuthContext } from '../../store';
 
 interface Props {
@@ -23,7 +25,8 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     code,
     id,
     isPinned,
-    userId
+    userId,
+    likes_count = 0
   } = props.snippet;
 
   const history = useHistory();
@@ -44,8 +47,18 @@ export const SnippetDetails = (props: Props): JSX.Element => {
   return (
     <Card>
       <h5 className='card-title d-flex align-items-center justify-content-between'>
-        {title}
-        <SnippetPin id={id} isPinned={isPinned} />
+        <div className="d-flex align-items-center">
+          {title}
+          <div className="ms-2">
+            <SnippetLike id={id} likes_count={likes_count} />
+          </div>
+        </div>
+        <div className="d-flex align-items-center">
+          <div className="me-2">
+            <SnippetSave id={id} />
+          </div>
+          <SnippetPin id={id} isPinned={isPinned} />
+        </div>
       </h5>
       <p>{description}</p>
 

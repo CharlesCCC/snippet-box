@@ -9,6 +9,8 @@ import cookieParser from 'cookie-parser';
 // Routers
 import { snippetRouter } from './routes/snippets';
 import authRouter from './routes/auth';
+import savedRouter from './routes/saved';
+import likesRouter from './routes/likes';
 import { associateModels } from './db/associateModels';
 
 // Env config
@@ -25,6 +27,8 @@ app.use(cookieParser());
 // Routes
 app.use('/api/snippets', snippetRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/saved', savedRouter);
+app.use('/api/likes', likesRouter);
 
 // Serve static files
 app.use(express.static(join(__dirname, '../public')));
