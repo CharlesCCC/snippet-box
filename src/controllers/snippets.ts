@@ -307,7 +307,7 @@ export const countTags = asyncWrapper(
     
     if (userId) {
       // Use quoted identifier for case-sensitive column name
-      query += `WHERE (snippets."userId" = ${userId} OR snippets.is_public = true)`;
+      query += `WHERE snippets."userId" = ${userId}`;
     } else {
       query += `WHERE snippets.is_public = true`;
     }
