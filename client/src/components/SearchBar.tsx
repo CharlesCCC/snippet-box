@@ -12,16 +12,37 @@ export const SearchBar = (): JSX.Element => {
   }, [inputRef]);
 
   const inputHandler = (e: KeyboardEvent<HTMLInputElement>) => {
-    const parsedQuery = searchParser(inputRef.current.value);
-    const searchQuery: SearchQuery = {
-      query: parsedQuery.toString(),
-      tags: [],
-      languages: []
-    };
-
-    if (e.key === 'Enter') {
-      searchSnippets(searchQuery);
-    } else if (e.key === 'Escape') {
+    const inputValue = inputRef.current.value;
+    
+    // Check if the input contains any special filter syntax
+    const hasFilters = inputValue.match(/(tags|lang):[a-zA-Z]+(,[a-zA-Z]+)*/);
+    
+    if (hasFilters) {
+      // If it has filters, use the structured search format
+      const parsedQuery = searchParser(inputValue);
+      const searchQuery: SearchQuery = {
+        query: parsedQuery.query,
+        tags: parsedQuery.tags,
+        languages: parsedQuery.languages
+      };
+      
+      if (e.key === 'Enter') {
+        searchSnippets(searchQuery);
+      }
+    } else {
+      // If it's a simple search, use the simpler format
+      if (e.key === 'Enter' && inputValue.trim()) {
+        searchSnippets({ 
+          searchText: inputValue.trim(),
+          query: '',
+          tags: [],
+          languages: []
+        });
+      }
+    }
+    
+    // Handle Escape key to clear search
+    if (e.key === 'Escape') {
       inputRef.current.value = '';
       searchSnippets({ query: '', tags: [], languages: [] });
     }

@@ -359,53 +359,145 @@ export const getRawCode = asyncWrapper(
  */
 export const searchSnippets = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { query, tags, languages } = <SearchQuery>req.body;
+    // Handle both structured and simple search
+    let searchQuery = '';
+    let searchTags: string[] = [];
+    let searchLanguages: string[] = [];
 
-    // Check if query is empty
-    if (query === '' && !tags.length && !languages.length) {
+    // Check if the request body is a string (simple text search)
+    if (typeof req.body === 'string' || req.body instanceof String) {
+      searchQuery = req.body as string;
+    } 
+    // Check if it's a simple object with just a searchText property
+    else if (req.body.searchText && typeof req.body.searchText === 'string') {
+      searchQuery = req.body.searchText;
+    } 
+    // Otherwise, use the structured SearchQuery interface
+    else {
+      const { query, tags, languages } = <SearchQuery>req.body;
+      searchQuery = query || '';
+      searchTags = Array.isArray(tags) ? tags : [];
+      searchLanguages = Array.isArray(languages) ? languages : [];
+    }
+
+    const userId = (req as any).user?.id;
+
+    // Check if search parameters are empty
+    if (searchQuery === '' && !searchTags.length && !searchLanguages.length) {
       res.status(200).json({
         data: []
       });
-
       return;
     }
 
-    const languageFilter = languages.length
-      ? { [Op.in]: languages }
-      : { [Op.notIn]: languages };
+    // Build the base query conditions
+    const whereConditions: any = {};
+    
+    // Add user access conditions
+    if (userId) {
+      whereConditions[Op.or] = [
+        { userId },
+        { is_public: true }
+      ];
+    } else {
+      whereConditions.is_public = true;
+    }
 
-    const tagFilter = tags.length ? { [Op.in]: tags } : { [Op.notIn]: tags };
+    // Add language filter if specified
+    if (searchLanguages.length) {
+      whereConditions.language = { [Op.in]: searchLanguages };
+    }
 
-    const snippets = await SnippetModel.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              { title: { [Op.substring]: `${query}` } },
-              { description: { [Op.substring]: `${query}` } }
-            ]
+    // If there's a search query, use PostgreSQL full-text search
+    if (searchQuery) {
+      // Use raw SQL for the full-text search part
+      const snippets = await sequelize.query(`
+        SELECT DISTINCT ON (s.id) s.*, 
+          ts_rank(s.search_vector, websearch_to_tsquery('english', :query)) as rank
+        FROM snippets s
+        LEFT JOIN snippets_tags st ON s.id = st.snippet_id
+        LEFT JOIN tags t ON st.tag_id = t.id
+        WHERE 
+          (s.search_vector @@ websearch_to_tsquery('english', :query) OR
+           t.search_vector @@ websearch_to_tsquery('english', :query))
+          ${userId ? `AND (s."userId" = :userId OR s.is_public = true)` : 'AND s.is_public = true'}
+          ${searchLanguages.length ? `AND s.language IN (:languages)` : ''}
+          ${searchTags.length ? `AND t.name IN (:tags)` : ''}
+        ORDER BY s.id, rank DESC
+      `, {
+        replacements: {
+          query: searchQuery,
+          userId,
+          languages: searchLanguages.length ? searchLanguages : undefined,
+          tags: searchTags.length ? searchTags : undefined
+        },
+        type: QueryTypes.SELECT
+      });
+
+      // Get the tag information for each snippet
+      const snippetIds = snippets.map((s: any) => s.id);
+      
+      if (snippetIds.length > 0) {
+        const snippetsWithTags = await SnippetModel.findAll({
+          where: { id: { [Op.in]: snippetIds } },
+          include: {
+            model: TagModel,
+            as: 'tags',
+            attributes: ['name'],
+            through: { attributes: [] }
           },
-          {
-            language: languageFilter
-          }
-        ]
-      },
-      include: {
+          order: [['id', 'ASC']]
+        });
+
+        // Map the tags to each snippet
+        const populatedSnippets = snippets.map((snippet: any) => {
+          const matchingSnippet = snippetsWithTags.find(s => s.id === snippet.id);
+          return {
+            ...snippet,
+            tags: matchingSnippet?.get('tags')?.map((tag: any) => tag.name) || []
+          };
+        });
+
+        res.status(200).json({
+          data: populatedSnippets
+        });
+      } else {
+        res.status(200).json({
+          data: []
+        });
+      }
+    } else {
+      // If no search query but has tag or language filters
+      const includeOptions: any = {
         model: TagModel,
         as: 'tags',
         attributes: ['name'],
-        where: {
-          name: tagFilter
-        },
-        through: {
-          attributes: []
-        }
-      }
-    });
+        through: { attributes: [] }
+      };
 
-    res.status(200).json({
-      data: snippets
-    });
+      // Add tag filter if specified
+      if (searchTags.length) {
+        includeOptions.where = { name: { [Op.in]: searchTags } };
+      }
+
+      // Use regular Sequelize query for tag/language only filtering
+      const snippets = await SnippetModel.findAll({
+        where: whereConditions,
+        include: includeOptions
+      });
+
+      const populatedSnippets = snippets.map(snippet => {
+        const rawSnippet = snippet.get({ plain: true });
+        return {
+          ...rawSnippet,
+          tags: rawSnippet.tags?.map(tag => tag.name)
+        };
+      });
+
+      res.status(200).json({
+        data: populatedSnippets
+      });
+    }
   }
 );
 

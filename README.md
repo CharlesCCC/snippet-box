@@ -116,6 +116,29 @@ Follow instructions from wiki - [Installation without Docker](https://github.com
 
 Visit wiki for search functionality and available filters reference: [Search functionality](https://github.com/pawelmalak/snippet-box/wiki/Search-functionality)
 
+### Search UI
+
+The search bar supports two types of searches:
+
+1. **Simple Text Search**: Just type your search terms and press Enter.
+   ```
+   javascript function
+   ```
+
+2. **Advanced Search with Filters**: Use special syntax for filtering by tags and languages.
+   ```
+   database lang:sql tags:postgresql,query
+   ```
+
+   Available filters:
+   - `lang:` - Filter by programming language (e.g., `lang:javascript`)
+   - `tags:` - Filter by tags, comma-separated (e.g., `tags:api,auth`)
+
+You can combine text search with filters:
+```
+connection lang:javascript tags:database,mongodb
+```
+
 ## Known Issues and Fixes
 
 ### Data Type Conversions
@@ -207,3 +230,57 @@ The authentication system uses the following environment variables:
 - `JWT_SECRET`: Secret key for JWT token generation (default: 'snippetboxsecret')
 - `JWT_EXPIRE`: JWT token expiration time (default: '30d')
 - `JWT_COOKIE_EXPIRE`: Cookie expiration time in days (default: 30)
+
+## Full-Text Search
+
+Snippet Box now includes a powerful full-text search feature that allows you to search across:
+
+- Snippet titles
+- Snippet descriptions
+- Tag names
+
+The search uses PostgreSQL's built-in full-text search capabilities with the following features:
+
+- **Weighted Search**: Results are ranked by relevance, with matches in titles given higher priority than matches in descriptions or tags.
+- **Stemming**: Searches for "running" will also match "run" and "runs".
+- **Stop Words**: Common words like "the", "and", "or" are ignored in searches.
+- **Partial Word Matching**: Searches will match parts of words.
+
+### Search API
+
+The search API (`/api/snippets/search`) now supports multiple formats:
+
+1. **Simple Text Search**:
+   ```json
+   "javascript function"
+   ```
+   or
+   ```json
+   { "searchText": "javascript function" }
+   ```
+
+2. **Structured Search**:
+   ```json
+   {
+     "query": "database",
+     "tags": ["postgresql", "sql"],
+     "languages": ["javascript", "typescript"]
+   }
+   ```
+
+### Search Syntax
+
+The search supports the following syntax:
+
+- **Simple search**: Just type your search terms (e.g., "javascript function")
+- **Phrase search**: Use quotes for exact phrases (e.g., "database connection")
+- **AND/OR operators**: Use AND/OR between terms (e.g., "javascript AND function")
+- **Negation**: Use - or NOT before terms you want to exclude (e.g., "javascript -jquery" or "javascript NOT jquery")
+
+### Performance Optimization
+
+The search is optimized for performance with:
+
+- **GIN Indexes**: Fast lookup for full-text search queries
+- **Materialized Columns**: Pre-computed search vectors for quick matching
+- **Ranked Results**: Most relevant results appear first

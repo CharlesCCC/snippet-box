@@ -2,7 +2,6 @@ import { useState, createContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import {
-  Context,
   Snippet,
   Response,
   TagCount,
@@ -228,8 +227,19 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
 
   const searchSnippets = async (query: SearchQuery): Promise<void> => {
     try {
-      const { data } = await axios.post('/api/snippets/search', query);
-      setSearchResults(data.data);
+      // If searchText is provided, use it directly for simple text search
+      if (query.searchText) {
+        const { data } = await axios.post('/api/snippets/search', { searchText: query.searchText });
+        setSearchResults(data.data);
+      } else {
+        // Otherwise use the structured search format
+        const { data } = await axios.post('/api/snippets/search', {
+          query: query.query,
+          tags: query.tags,
+          languages: query.languages
+        });
+        setSearchResults(data.data);
+      }
     } catch (error) {
       console.error('Error searching snippets:', error);
     }
