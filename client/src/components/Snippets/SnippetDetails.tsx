@@ -6,6 +6,7 @@ import { dateParser } from '../../utils';
 import { Badge, Button, Card } from '../UI';
 import copy from 'clipboard-copy';
 import { SnippetPin } from './SnippetPin';
+import { AuthContext } from '../../store';
 
 interface Props {
   snippet: Snippet;
@@ -21,15 +22,20 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     description,
     code,
     id,
-    isPinned
+    isPinned,
+    userId
   } = props.snippet;
 
   const history = useHistory();
 
   const { deleteSnippet, setSnippet } = useContext(SnippetsContext);
+  const { user } = useContext(AuthContext);
 
   const creationDate = dateParser(createdAt);
   const updateDate = dateParser(updatedAt);
+
+  // Check if the current user is the owner of the snippet
+  const isOwner = user && userId && user.id === userId;
 
   // const copyHandler = () => {
   //   copy(code);
@@ -74,27 +80,32 @@ export const SnippetDetails = (props: Props): JSX.Element => {
 
       {/* ACTIONS */}
       <div className='d-grid g-2' style={{ rowGap: '10px' }}>
-        <Button
-          text='Delete'
-          color='danger'
-          small
-          outline
-          handler={() => deleteSnippet(id)}
-        />
+        {/* Only show Delete and Edit buttons if user is the owner */}
+        {isOwner && (
+          <>
+            <Button
+              text='Delete'
+              color='danger'
+              small
+              outline
+              handler={() => deleteSnippet(id)}
+            />
 
-        <Button
-          text='Edit'
-          color='secondary'
-          small
-          outline
-          handler={() => {
-            setSnippet(id);
-            history.push({
-              pathname: `/editor/${id}`,
-              state: { from: window.location.pathname }
-            });
-          }}
-        />
+            <Button
+              text='Edit'
+              color='secondary'
+              small
+              outline
+              handler={() => {
+                setSnippet(id);
+                history.push({
+                  pathname: `/editor/${id}`,
+                  state: { from: window.location.pathname }
+                });
+              }}
+            />
+          </>
+        )}
 
         <Button
           text='Copy raw url'

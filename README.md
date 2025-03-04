@@ -285,3 +285,13 @@ The search is optimized for performance with:
 - **GIN Indexes**: Fast lookup for full-text search queries
 - **Materialized Columns**: Pre-computed search vectors for quick matching
 - **Ranked Results**: Most relevant results appear first
+
+### Snippet Ownership and Permissions
+
+Snippet Box implements a permission system to control who can edit or delete snippets:
+
+- **Snippet Owners**: Only the creator of a snippet can edit or delete it. The Edit and Delete buttons are only visible to the snippet owner.
+- **Public Snippets**: Even if a snippet is public, only the owner can edit or delete it. Other users can view and copy the snippet but cannot modify it.
+- **Private Snippets**: Private snippets are only visible to their owners and cannot be accessed by other users.
+
+This ensures that users can safely share their snippets without worrying about unauthorized modifications.

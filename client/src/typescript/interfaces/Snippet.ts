@@ -9,6 +9,7 @@ export interface NewSnippet {
   isPinned: boolean;
   tags: string[];
   is_public?: boolean;
+  userId?: number;
 }
 
 export interface Snippet extends Model, NewSnippet {}
