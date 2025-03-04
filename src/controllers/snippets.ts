@@ -405,7 +405,12 @@ export const searchSnippets = asyncWrapper(
 
     // Add language filter if specified
     if (searchLanguages.length) {
-      whereConditions.language = { [Op.in]: searchLanguages };
+      // Convert languages to lowercase for case-insensitive comparison
+      const lowerLanguages = searchLanguages.map(lang => lang.toLowerCase());
+      whereConditions.language = sequelize.where(
+        sequelize.fn('LOWER', sequelize.col('language')),
+        { [Op.in]: lowerLanguages }
+      );
     }
 
     // If there's a search query, use PostgreSQL full-text search
@@ -413,23 +418,23 @@ export const searchSnippets = asyncWrapper(
       // Use raw SQL for the full-text search part
       const snippets = await sequelize.query(`
         SELECT DISTINCT ON (s.id) s.*, 
-          ts_rank(s.search_vector, websearch_to_tsquery('english', :query)) as rank
+          ts_rank(s.search_vector, websearch_to_tsquery('english', lower(:query))) as rank
         FROM snippets s
         LEFT JOIN snippets_tags st ON s.id = st.snippet_id
         LEFT JOIN tags t ON st.tag_id = t.id
         WHERE 
-          (s.search_vector @@ websearch_to_tsquery('english', :query) OR
-           t.search_vector @@ websearch_to_tsquery('english', :query))
+          (s.search_vector @@ websearch_to_tsquery('english', lower(:query)) OR
+           t.search_vector @@ websearch_to_tsquery('english', lower(:query)))
           ${userId ? `AND (s."userId" = :userId OR s.is_public = true)` : 'AND s.is_public = true'}
-          ${searchLanguages.length ? `AND s.language IN (:languages)` : ''}
-          ${searchTags.length ? `AND t.name IN (:tags)` : ''}
+          ${searchLanguages.length ? `AND LOWER(s.language) IN (:languages)` : ''}
+          ${searchTags.length ? `AND LOWER(t.name) IN (:tags)` : ''}
         ORDER BY s.id, rank DESC
       `, {
         replacements: {
           query: searchQuery,
           userId,
-          languages: searchLanguages.length ? searchLanguages : undefined,
-          tags: searchTags.length ? searchTags : undefined
+          languages: searchLanguages.length ? searchLanguages.map(lang => lang.toLowerCase()) : undefined,
+          tags: searchTags.length ? searchTags.map(tag => tag.toLowerCase()) : undefined
         },
         type: QueryTypes.SELECT
       });
@@ -477,7 +482,12 @@ export const searchSnippets = asyncWrapper(
 
       // Add tag filter if specified
       if (searchTags.length) {
-        includeOptions.where = { name: { [Op.in]: searchTags } };
+        // Convert tags to lowercase for case-insensitive comparison
+        const lowerTags = searchTags.map(tag => tag.toLowerCase());
+        includeOptions.where = sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('tags.name')),
+          { [Op.in]: lowerTags }
+        );
       }
 
       // Use regular Sequelize query for tag/language only filtering

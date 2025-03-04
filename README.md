@@ -241,6 +241,7 @@ Snippet Box now includes a powerful full-text search feature that allows you to 
 
 The search uses PostgreSQL's built-in full-text search capabilities with the following features:
 
+- **Case-Insensitive**: Searches are not case-sensitive, so "JavaScript", "javascript", and "JAVASCRIPT" will all return the same results.
 - **Weighted Search**: Results are ranked by relevance, with matches in titles given higher priority than matches in descriptions or tags.
 - **Stemming**: Searches for "running" will also match "run" and "runs".
 - **Stop Words**: Common words like "the", "and", "or" are ignored in searches.

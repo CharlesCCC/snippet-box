@@ -7,14 +7,14 @@ module.exports = {
       -- Add tsvector columns to snippets table
       ALTER TABLE snippets 
       ADD COLUMN search_vector tsvector GENERATED ALWAYS AS (
-        setweight(to_tsvector('english', coalesce(title, '')), 'A') || 
-        setweight(to_tsvector('english', coalesce(description, '')), 'B')
+        setweight(to_tsvector('english', lower(coalesce(title, ''))), 'A') || 
+        setweight(to_tsvector('english', lower(coalesce(description, ''))), 'B')
       ) STORED;
 
       -- Add tsvector column to tags table
       ALTER TABLE tags
       ADD COLUMN search_vector tsvector GENERATED ALWAYS AS (
-        setweight(to_tsvector('english', coalesce(name, '')), 'C')
+        setweight(to_tsvector('english', lower(coalesce(name, ''))), 'C')
       ) STORED;
 
       -- Create GIN indexes for fast full-text search
