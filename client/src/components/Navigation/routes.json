@@ -9,12 +9,12 @@
       "dest": "/snippets"
     },
     {
-      "name": "Editor",
-      "dest": "/editor"
-    },
-    {
       "name": "Saved",
       "dest": "/saved"
+    },
+    {
+      "name": "Editor",
+      "dest": "/editor"
     }
   ]
 }
