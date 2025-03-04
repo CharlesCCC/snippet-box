@@ -295,3 +295,22 @@ Snippet Box implements a permission system to control who can edit or delete sni
 - **Private Snippets**: Private snippets are only visible to their owners and cannot be accessed by other users.
 
 This ensures that users can safely share their snippets without worrying about unauthorized modifications.
+
+### Accessing Raw Snippet Code
+
+Snippet Box provides an API endpoint to access the raw code of a snippet: `/api/snippets/raw/:id`. This endpoint follows the same access rules as regular snippet access:
+
+- **Public Snippets**: Can be accessed by anyone, even without authentication
+- **Private Snippets**: Can only be accessed by the snippet owner
+
+If you're having trouble accessing raw snippet code and receiving HTML instead of the actual code, it could be due to one of these issues:
+
+1. **Authentication**: You might not be authenticated, and the snippet is private
+2. **Permissions**: You might be authenticated but don't own the private snippet
+3. **Server Configuration**: The server might be incorrectly routing API requests to the client-side application
+
+To fix these issues:
+
+1. Make sure you're logged in if trying to access a private snippet
+2. Check that the snippet is either public or owned by you
+3. If you're a server administrator, ensure that API routes are properly configured in the server.ts file

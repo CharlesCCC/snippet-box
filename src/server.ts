@@ -21,16 +21,22 @@ const PORT = process.env.PORT || 5000;
 // App config
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(join(__dirname, '../public')));
-
-// Serve client code
-app.get(/^\/(?!api)/, (req: Request, res: Response) => {
-  res.sendFile(join(__dirname, '../public/index.html'));
-});
 
 // Routes
 app.use('/api/snippets', snippetRouter);
 app.use('/api/auth', authRouter);
+
+// Serve static files
+app.use(express.static(join(__dirname, '../public')));
+
+// Serve client code for any non-API route
+// This should be after API routes to ensure they take precedence
+app.get('*', (req: Request, res: Response) => {
+  // Only serve the index.html for non-API routes
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(join(__dirname, '../public/index.html'));
+  }
+});
 
 // Error handler
 app.use(errorHandler);

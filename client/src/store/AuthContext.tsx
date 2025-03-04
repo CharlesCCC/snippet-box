@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
     }
 
     try {
-      const res = await axios.post<Response<{ token: string }>>('/api/auth/register', {
+      await axios.post<Response<{ token: string }>>('/api/auth/register', {
         email: credentials.email,
         password: credentials.password
       });
@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
     setAuthState(prevState => ({ ...prevState, loading: true }));
 
     try {
-      const res = await axios.post<Response<{ token: string }>>('/api/auth/login', credentials);
+      await axios.post<Response<{ token: string }>>('/api/auth/login', credentials);
 
       setAuthState(prevState => ({
         ...prevState,

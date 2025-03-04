@@ -333,13 +333,17 @@ export const countTags = asyncWrapper(
  * @request GET
  */
 export const getRawCode = asyncWrapper(
+  //TODO: to be fixed
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const snippet = await SnippetModel.findOne({
-      where: { id: req.params.id },
-      raw: true
+      where: { id: req.params.id }
     });
+    
+    console.log('getRawCode controller - Snippet ID:', req.params.id);
+    console.log('getRawCode controller - User:', (req as any).user);
 
     if (!snippet) {
+      console.log('getRawCode controller - Snippet not found');
       return next(
         new ErrorResponse(
           404,
@@ -348,7 +352,32 @@ export const getRawCode = asyncWrapper(
       );
     }
 
-    res.status(200).send(snippet.code);
+    // Check if user has access to this snippet
+    const userId = (req as any).user?.id;
+    const isPublic = snippet.get('is_public');
+    const snippetUserId = snippet.get('userId');
+    
+    // Add debug logging
+    console.log('Snippet access check:');
+    console.log('- User ID:', userId, 'Type:', typeof userId);
+    console.log('- Snippet User ID:', snippetUserId, 'Type:', typeof snippetUserId);
+    console.log('- Is Public:', isPublic);
+    console.log('- Access allowed:', isPublic || Number(userId) === Number(snippetUserId));
+
+    // If snippet is private and user is not the owner, deny access
+    // Convert both IDs to numbers for comparison to avoid type mismatches
+    if (!isPublic && Number(userId) !== Number(snippetUserId)) {
+      console.log('getRawCode controller - Access denied');
+      return next(
+        new ErrorResponse(
+          403,
+          'Not authorized to access this snippet'
+        )
+      );
+    }
+
+    console.log('getRawCode controller - Access granted');
+    res.status(200).send(snippet.get('code'));
   }
 );
 
