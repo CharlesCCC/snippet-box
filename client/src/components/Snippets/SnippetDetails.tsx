@@ -107,7 +107,8 @@ export const SnippetDetails = (props: Props): JSX.Element => {
           </>
         )}
 
-        <Button
+        {/* TODO: to be fixed */}
+        {/* <Button
           text='Copy raw url'
           color='secondary'
           small
@@ -117,7 +118,7 @@ export const SnippetDetails = (props: Props): JSX.Element => {
             const rawUrl = `${protocol}//${host}/api/snippets/raw/${id}`;
             copy(rawUrl);
           }}
-        />
+        /> */}
 
         <Button
           text='Copy code'
