@@ -31,7 +31,6 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     createdAt,
     updatedAt,
     description,
-    code,
     id,
     isPinned,
     userId,

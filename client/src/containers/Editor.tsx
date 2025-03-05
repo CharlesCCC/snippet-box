@@ -25,7 +25,7 @@ export const Editor = (): JSX.Element => {
       setCurrentSnippet(id);
       setInEdit(true);
     }
-  }, []);
+  }, [id, setCurrentSnippet]);
 
   return (
     <Layout>

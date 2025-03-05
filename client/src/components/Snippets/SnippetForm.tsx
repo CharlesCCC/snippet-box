@@ -36,7 +36,7 @@ export const SnippetForm = (props: Props): JSX.Element => {
         setFormData({ ...currentSnippet });
       }
     }
-  }, [currentSnippet]);
+  }, [currentSnippet, inEdit]);
 
   const inputHandler = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

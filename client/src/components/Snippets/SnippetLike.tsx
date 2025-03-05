@@ -13,29 +13,35 @@ export const SnippetLike = (props: Props): JSX.Element => {
   const { id, likes_count } = props;
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likesCount, setLikesCount] = useState<number>(likes_count || 0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const checkLikedStatus = async () => {
-      setIsLoading(true);
-      
       // Check if we already have the like status in the cache
       if (likedSnippetsCache.has(id)) {
         const cachedData = likedSnippetsCache.get(id)!;
-        setIsLiked(cachedData.liked);
-        setLikesCount(cachedData.likes_count);
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLiked(cachedData.liked);
+          setLikesCount(cachedData.likes_count);
+        }
         return;
       }
       
       // If not in cache, fetch it
       const result = await checkIfLiked(id);
-      setIsLiked(result.liked);
-      setLikesCount(result.likes_count);
-      setIsLoading(false);
+      if (isMounted) {
+        setIsLiked(result.liked);
+        setLikesCount(result.likes_count);
+      }
     };
 
     checkLikedStatus();
+    
+    // Cleanup function to prevent state updates after unmounting
+    return () => {
+      isMounted = false;
+    };
   }, [id, checkIfLiked, likedSnippetsCache]);
 
   // Update when the cache changes
