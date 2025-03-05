@@ -22,6 +22,7 @@ export const Home = (): JSX.Element => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const prevPublicSnippetsRef = useRef<Snippet[]>([]);
 
   useEffect(() => {
     getSnippets();
@@ -30,14 +31,20 @@ export const Home = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    setLocalPublicSnippets([...publicSnippets]);
-    console.log('Public snippets updated:', publicSnippets);
-    
-    // Batch check likes for the first page of snippets
-    if (publicSnippets.length > 0) {
-      const firstPageSnippets = publicSnippets.slice(0, pagination.limit);
-      const snippetIds = firstPageSnippets.map(snippet => snippet.id);
-      batchCheckLikes(snippetIds);
+    // Only update if the actual content changed
+    if (JSON.stringify(prevPublicSnippetsRef.current) !== JSON.stringify(publicSnippets)) {
+      setLocalPublicSnippets([...publicSnippets]);
+      prevPublicSnippetsRef.current = [...publicSnippets];
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Public snippets updated:', publicSnippets);
+      }
+      
+      if (publicSnippets.length > 0) {
+        const firstPageSnippets = publicSnippets.slice(0, pagination.limit);
+        const snippetIds = firstPageSnippets.map(snippet => snippet.id);
+        batchCheckLikes(snippetIds);
+      }
     }
   }, [publicSnippets, pagination.limit, batchCheckLikes]);
 
