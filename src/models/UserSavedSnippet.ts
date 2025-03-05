@@ -4,6 +4,8 @@ import {
   UserSavedSnippet,
   UserSavedSnippetCreationAttributes
 } from '../typescript/interfaces';
+import { SnippetModel } from './Snippet';
+import { UserModel } from './User';
 
 const { INTEGER, DATE } = DataTypes;
 
@@ -45,4 +47,8 @@ export const UserSavedSnippetModel = sequelize.define<UserSavedSnippetInstance>(
   {
     tableName: 'user_saved_snippets'
   }
-); 
+);
+
+// Define the associations between UserSavedSnippet and Snippet
+UserSavedSnippetModel.belongsTo(SnippetModel, { foreignKey: 'snippetId', as: 'snippet' });
+UserSavedSnippetModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'user' }); 

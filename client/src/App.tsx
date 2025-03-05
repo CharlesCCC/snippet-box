@@ -1,6 +1,6 @@
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { Navbar } from './components/Navigation/Navbar';
-import { Editor, Home, Snippet, Snippets, SavedSnippets, UserProfile } from './containers';
+import { Editor, Home, Snippet, Snippets, SavedSnippets, UserProfile, Rank } from './containers';
 import { 
   Login, 
   Register, 
@@ -27,6 +27,7 @@ export const App = () => {
             <Route path='/register' component={Register} />
             <Route path='/forgotpassword' component={ForgotPassword} />
             <Route path='/resetpassword/:resettoken' component={ResetPassword} />
+            <Route path='/rankings' component={Rank} />
             
             {/* Protected Routes */}
             <ProtectedRoute path='/editor/:id?' component={Editor} />

@@ -15,6 +15,10 @@
     {
       "name": "Editor",
       "dest": "/editor"
+    },
+    {
+      "name": "Rankings",
+      "dest": "/rankings"
     }
   ]
 }

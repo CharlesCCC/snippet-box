@@ -11,6 +11,7 @@ import { snippetRouter } from './routes/snippets';
 import authRouter from './routes/auth';
 import savedRouter from './routes/saved';
 import likesRouter from './routes/likes';
+import rankingsRouter from './routes/rankings';
 import { associateModels } from './db/associateModels';
 
 // Env config
@@ -29,6 +30,7 @@ app.use('/api/snippets', snippetRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/saved', savedRouter);
 app.use('/api/likes', likesRouter);
+app.use('/api/rankings', rankingsRouter);
 
 // Serve static files
 app.use(express.static(join(__dirname, '../public')));

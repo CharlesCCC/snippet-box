@@ -16,6 +16,10 @@ Snippet Box is a simple self-hosted app for organizing your code snippets. It al
 - Public and private snippets
 - Automatic loading of more snippets when scrolling (when 9+ snippets are available)
 - Responsive design for desktop and mobile devices
+- Rankings page showing top users and snippets by likes and saves
+  - Filter rankings by time period (24 hours, 1 week, 1 month, etc.)
+  - View top users based on likes and saves received
+  - View top snippets based on likes and saves received
 
 ## Technology
 
@@ -24,6 +28,7 @@ Snippet Box is a simple self-hosted app for organizing your code snippets. It al
   - Typescript
   - Express.js
   - Sequelize ORM + SQLite
+  - Node-cache for performance optimization
 - Frontend
   - React
   - TypeScript
