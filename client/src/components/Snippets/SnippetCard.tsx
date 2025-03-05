@@ -28,9 +28,11 @@ export const SnippetCard = (props: Props): JSX.Element => {
   return (
     <Card classes='h-100' bodyClasses='d-flex flex-column'>
       {/* TITLE */}
-      <h5 className='card-title d-flex align-items-center justify-content-between'>
-        {title}
-        <div className='d-flex align-items-center'>
+      <h5 className='card-title d-flex align-items-center justify-content-between mb-2'>
+        <div className="text-truncate me-2">
+          {title}
+        </div>
+        <div className='d-flex align-items-center flex-shrink-0'>
           <div className='me-2'>
             <SnippetPublic id={id} isPublic={is_public || false} />
           </div>
@@ -44,18 +46,18 @@ export const SnippetCard = (props: Props): JSX.Element => {
       </h6>
 
       {/* DESCRIPTION */}
-      <p>{description ? description : 'No description'}</p>
+      <p className="text-truncate">{description ? description : 'No description'}</p>
 
       <div className='mt-auto'>
         {/* CREATOR AND DATE */}
         <div className="d-flex justify-content-between">
-          <div className="d-flex align-items-center">
-            <Icon path={mdiAccount} size={0.8} className="me-1" />
-            <Link to={`/${user ? user.user_name : '/'}`} className="text-decoration-none">
-                <small className="text-muted">{user ? user.user_name : 'Anonymous'}</small>
+          <div className="d-flex align-items-center text-truncate">
+            <Icon path={mdiAccount} size={0.8} className="me-1 flex-shrink-0" />
+            <Link to={`/${user ? user.user_name : '/'}`} className="text-decoration-none text-truncate">
+                <small className="text-muted text-truncate">{user ? user.user_name : 'Anonymous'}</small>
             </Link>
-            <span className="mx-1 text-muted">·</span>
-            <p className="mb-0 small">{dateParser(createdAt).relative}</p>
+            <span className="mx-1 text-muted flex-shrink-0">·</span>
+            <p className="mb-0 small text-truncate">{dateParser(createdAt).relative}</p>
           </div>
         </div>
         

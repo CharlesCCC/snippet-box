@@ -5,3 +5,19 @@
 .cursor-pointer:hover {
   cursor: pointer;
 }
+
+/* Improve checkbox visibility in dark theme */
+.form-check-input {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  
+  &:checked {
+    background-color: $primary;
+    border-color: $primary;
+  }
+  
+  &:focus {
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+  }
+}
