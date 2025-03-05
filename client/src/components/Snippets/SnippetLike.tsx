@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const SnippetLike = (props: Props): JSX.Element => {
-  const { likeSnippet, unlikeSnippet, checkIfLiked } = useContext(SnippetsContext);
+  const { likeSnippet, unlikeSnippet, checkIfLiked, likedSnippetsCache } = useContext(SnippetsContext);
   const { id, likes_count } = props;
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likesCount, setLikesCount] = useState<number>(likes_count || 0);
@@ -18,6 +18,17 @@ export const SnippetLike = (props: Props): JSX.Element => {
   useEffect(() => {
     const checkLikedStatus = async () => {
       setIsLoading(true);
+      
+      // Check if we already have the like status in the cache
+      if (likedSnippetsCache.has(id)) {
+        const cachedData = likedSnippetsCache.get(id)!;
+        setIsLiked(cachedData.liked);
+        setLikesCount(cachedData.likes_count);
+        setIsLoading(false);
+        return;
+      }
+      
+      // If not in cache, fetch it
       const result = await checkIfLiked(id);
       setIsLiked(result.liked);
       setLikesCount(result.likes_count);
@@ -25,7 +36,16 @@ export const SnippetLike = (props: Props): JSX.Element => {
     };
 
     checkLikedStatus();
-  }, [id, checkIfLiked]);
+  }, [id, checkIfLiked, likedSnippetsCache]);
+
+  // Update when the cache changes
+  useEffect(() => {
+    if (likedSnippetsCache.has(id)) {
+      const cachedData = likedSnippetsCache.get(id)!;
+      setIsLiked(cachedData.liked);
+      setLikesCount(cachedData.likes_count);
+    }
+  }, [likedSnippetsCache, id]);
 
   const handleToggleLike = async () => {
     if (isLiked) {

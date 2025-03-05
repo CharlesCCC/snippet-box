@@ -14,7 +14,8 @@ export const Home = (): JSX.Element => {
     searchResults, 
     publicTagCount, 
     pagination, 
-    countPublicTags 
+    countPublicTags,
+    batchCheckLikes
   } = useContext(SnippetsContext);
   const [filter, setFilter] = useState<string | null>(null);
   const [localPublicSnippets, setLocalPublicSnippets] = useState<Snippet[]>([]);
@@ -31,7 +32,14 @@ export const Home = (): JSX.Element => {
   useEffect(() => {
     setLocalPublicSnippets([...publicSnippets]);
     console.log('Public snippets updated:', publicSnippets);
-  }, [publicSnippets]);
+    
+    // Batch check likes for the first page of snippets
+    if (publicSnippets.length > 0) {
+      const firstPageSnippets = publicSnippets.slice(0, pagination.limit);
+      const snippetIds = firstPageSnippets.map(snippet => snippet.id);
+      batchCheckLikes(snippetIds);
+    }
+  }, [publicSnippets, pagination.limit, batchCheckLikes]);
 
   useEffect(() => {
     console.log('Public tag count updated:', publicTagCount);

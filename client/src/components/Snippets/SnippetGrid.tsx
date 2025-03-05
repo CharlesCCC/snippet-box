@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Snippet } from '../../typescript/interfaces';
 import { SnippetCard } from './SnippetCard';
 import { Pagination } from '../UI';
+import { SnippetsContext } from '../../store';
 
 interface Props {
   snippets: Snippet[];
@@ -9,6 +10,7 @@ interface Props {
 
 export const SnippetGrid = (props: Props): JSX.Element => {
   const { snippets } = props;
+  const { batchCheckLikes } = useContext(SnippetsContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedSnippets, setPaginatedSnippets] = useState<Snippet[]>([]);
   
@@ -22,13 +24,20 @@ export const SnippetGrid = (props: Props): JSX.Element => {
   useEffect(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    setPaginatedSnippets(snippets.slice(startIndex, endIndex));
+    const visibleSnippets = snippets.slice(startIndex, endIndex);
+    setPaginatedSnippets(visibleSnippets);
     
     // Reset to page 1 if current page is out of bounds after snippets change
     if (currentPage > Math.ceil(snippets.length / itemsPerPage) && snippets.length > 0) {
       setCurrentPage(1);
     }
-  }, [snippets, currentPage]);
+    
+    // Batch fetch likes for visible snippets
+    if (visibleSnippets.length > 0) {
+      const snippetIds = visibleSnippets.map(snippet => snippet.id);
+      batchCheckLikes(snippetIds);
+    }
+  }, [snippets, currentPage, batchCheckLikes]);
   
   // Handle page change
   const handlePageChange = (page: number) => {

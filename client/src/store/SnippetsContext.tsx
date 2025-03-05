@@ -65,6 +65,8 @@ interface SnippetsContextType {
   likeSnippet: (id: number) => Promise<void>;
   unlikeSnippet: (id: number) => Promise<void>;
   checkIfLiked: (id: number) => Promise<{ liked: boolean; likes_count: number }>;
+  batchCheckLikes: (ids: number[]) => Promise<void>;
+  likedSnippetsCache: Map<number, { liked: boolean; likes_count: number }>;
 }
 
 export const SnippetsContext = createContext<SnippetsContextType>({} as SnippetsContextType);
@@ -81,6 +83,9 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
   const [tagCount, setTagCount] = useState<TagCount[]>([]);
   const [publicTagCount, setPublicTagCount] = useState<TagCount[]>([]);
   const [savedSnippets, setSavedSnippets] = useState<Snippet[]>([]);
+  const [likedSnippetsCache, setLikedSnippetsCache] = useState<Map<number, { liked: boolean; likes_count: number }>>(
+    new Map()
+  );
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -313,6 +318,13 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       if (currentSnippet && currentSnippet.id === id) {
         setCurrentSnippet({ ...currentSnippet, likes_count: data.data.likes_count });
       }
+      
+      // Update the cache
+      setLikedSnippetsCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(id, { liked: true, likes_count: data.data.likes_count });
+        return newCache;
+      });
     } catch (error) {
       console.error('Error liking snippet:', error);
     }
@@ -335,18 +347,68 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       if (currentSnippet && currentSnippet.id === id) {
         setCurrentSnippet({ ...currentSnippet, likes_count: data.data.likes_count });
       }
+      
+      // Update the cache
+      setLikedSnippetsCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(id, { liked: false, likes_count: data.data.likes_count });
+        return newCache;
+      });
     } catch (error) {
       console.error('Error unliking snippet:', error);
     }
   };
 
   const checkIfLiked = async (id: number): Promise<{ liked: boolean; likes_count: number }> => {
+    // Check cache first
+    if (likedSnippetsCache.has(id)) {
+      return likedSnippetsCache.get(id)!;
+    }
+    
     try {
       const { data } = await axios.get<Response<{ liked: boolean; likes_count: number }>>(`/api/likes/check/${id}`);
+      
+      // Update cache
+      setLikedSnippetsCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(id, data.data);
+        return newCache;
+      });
+      
       return data.data;
     } catch (error) {
       console.error('Error checking if snippet is liked:', error);
       return { liked: false, likes_count: 0 };
+    }
+  };
+  
+  // New function to batch check likes for multiple snippets
+  const batchCheckLikes = async (ids: number[]): Promise<void> => {
+    // Filter out IDs that are already in the cache
+    const uncachedIds = ids.filter(id => !likedSnippetsCache.has(id));
+    
+    if (uncachedIds.length === 0) {
+      return;
+    }
+    
+    try {
+      // Make parallel requests for all uncached IDs
+      const requests = uncachedIds.map(id => 
+        axios.get<Response<{ liked: boolean; likes_count: number }>>(`/api/likes/check/${id}`)
+      );
+      
+      const responses = await Promise.all(requests);
+      
+      // Update cache with all results
+      setLikedSnippetsCache(prev => {
+        const newCache = new Map(prev);
+        responses.forEach((response, index) => {
+          newCache.set(uncachedIds[index], response.data.data);
+        });
+        return newCache;
+      });
+    } catch (error) {
+      console.error('Error batch checking likes:', error);
     }
   };
 
@@ -377,7 +439,9 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     searchSnippets,
     likeSnippet,
     unlikeSnippet,
-    checkIfLiked
+    checkIfLiked,
+    batchCheckLikes,
+    likedSnippetsCache
   };
 
   return (
