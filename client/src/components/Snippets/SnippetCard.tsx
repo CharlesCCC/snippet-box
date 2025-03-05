@@ -32,7 +32,7 @@ export const SnippetCard = (props: Props): JSX.Element => {
         {title}
         <div className='d-flex align-items-center'>
           <div className='me-2'>
-            <SnippetPublic id={id} is_public={is_public} />
+            <SnippetPublic id={id} isPublic={is_public || false} />
           </div>
           <SnippetPin id={id} isPinned={isPinned} />
         </div>

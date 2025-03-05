@@ -4,7 +4,7 @@ import Icon from '@mdi/react';
 import { mdiHeart, mdiHeartOutline } from '@mdi/js';
 
 interface Props {
-  id: number;
+  id: string;
   likes_count: number;
 }
 

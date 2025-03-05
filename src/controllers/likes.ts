@@ -12,7 +12,7 @@ import { sequelize } from '../db';
 export const likeSnippet = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = (req as any).user.id;
-    const snippetId = parseInt(req.params.id);
+    const snippetId = req.params.id;
 
     // Check if snippet exists
     const snippet = await SnippetModel.findByPk(snippetId);
@@ -78,7 +78,7 @@ export const likeSnippet = asyncWrapper(
 export const unlikeSnippet = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = (req as any).user.id;
-    const snippetId = parseInt(req.params.id);
+    const snippetId = req.params.id;
 
     // Check if snippet exists
     const snippet = await SnippetModel.findByPk(snippetId);
@@ -138,7 +138,9 @@ export const unlikeSnippet = asyncWrapper(
 export const checkLiked = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = (req as any).user?.id;
-    const snippetId = parseInt(req.params.id);
+    const snippetId = req.params.id;
+    
+    console.debug(`Checking if snippet ${snippetId} is liked by user ${userId || 'unauthenticated'}`);
 
     // Check if snippet exists
     const snippet = await SnippetModel.findByPk(snippetId);
@@ -156,6 +158,9 @@ export const checkLiked = asyncWrapper(
         }
       });
       liked = !!existingLike;
+      console.debug(`User ${userId} ${liked ? 'has liked' : 'has not liked'} snippet ${snippetId}`);
+    } else {
+      console.debug(`Unauthenticated user checking like status for snippet ${snippetId}`);
     }
 
     res.status(200).json({

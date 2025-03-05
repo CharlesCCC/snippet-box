@@ -5,16 +5,15 @@ import {
   getSavedSnippets,
   checkSavedSnippet
 } from '../controllers/saved';
-import { protect } from '../middleware/auth';
+import { protect, optionalProtect } from '../middleware/auth';
 
 const router = Router();
 
-// Apply authentication middleware to all routes
-router.use(protect);
+// Routes that require authentication
+router.route('/').get(protect, getSavedSnippets).post(protect, saveSnippet);
+router.route('/:id').delete(protect, unsaveSnippet);
 
-// Routes
-router.route('/').get(getSavedSnippets).post(saveSnippet);
-router.route('/:id').delete(unsaveSnippet);
-router.route('/check/:id').get(checkSavedSnippet);
+// Route that can work with or without authentication
+router.route('/check/:id').get(optionalProtect, checkSavedSnippet);
 
 export default router; 

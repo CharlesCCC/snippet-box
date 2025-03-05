@@ -5,7 +5,7 @@ import {
   UserSavedSnippetCreationAttributes
 } from '../typescript/interfaces';
 
-const { INTEGER, DATE } = DataTypes;
+const { UUID, UUIDV4, DATE } = DataTypes;
 
 export interface UserSavedSnippetInstance
   extends Model<UserSavedSnippet, UserSavedSnippetCreationAttributes>,
@@ -15,12 +15,12 @@ export const UserSavedSnippetModel = sequelize.define<UserSavedSnippetInstance>(
   'UserSavedSnippet',
   {
     id: {
-      type: INTEGER,
+      type: UUID,
       primaryKey: true,
-      autoIncrement: true
+      defaultValue: UUIDV4
     },
     userId: {
-      type: INTEGER,
+      type: UUID,
       allowNull: false,
       references: {
         model: 'users',
@@ -29,7 +29,7 @@ export const UserSavedSnippetModel = sequelize.define<UserSavedSnippetInstance>(
       field: 'user_id'
     },
     snippetId: {
-      type: INTEGER,
+      type: UUID,
       allowNull: false,
       references: {
         model: 'snippets',

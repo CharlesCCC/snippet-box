@@ -19,7 +19,7 @@ export const Snippet = (): JSX.Element => {
   const { from } = location.state || '/snippets';
 
   useEffect(() => {
-    getSnippetById(+id);
+    getSnippetById(id);
   }, []);
 
   return (

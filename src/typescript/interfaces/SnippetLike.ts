@@ -1,9 +1,9 @@
 import { Optional } from 'sequelize';
 
 export interface SnippetLike {
-  id: number;
-  userId: number;
-  snippetId: number;
+  id: string;
+  userId: string;
+  snippetId: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

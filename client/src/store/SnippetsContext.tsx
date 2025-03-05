@@ -30,7 +30,7 @@ axios.interceptors.request.use(
   }
 );
 
-interface SnippetsContextType {
+export interface SnippetsContextType {
   snippets: Snippet[];
   publicSnippets: Snippet[];
   searchResults: Snippet[];
@@ -46,25 +46,25 @@ interface SnippetsContextType {
   };
   getSnippets: () => Promise<void>;
   getPublicSnippets: (page?: number, limit?: number) => Promise<void>;
-  getSnippetById: (id: number) => void;
-  setSnippet: (id: number) => void;
+  getSnippetById: (id: string) => void;
+  setSnippet: (id: string) => void;
   createSnippet: (snippet: NewSnippet) => void;
-  updateSnippet: (snippet: NewSnippet, id: number, isLocal?: boolean) => void;
-  deleteSnippet: (id: number) => void;
-  toggleSnippetPin: (id: number) => void;
-  toggleSnippetPublic: (id: number) => void;
-  saveSnippet: (id: number) => void;
-  unsaveSnippet: (id: number) => void;
+  updateSnippet: (snippet: NewSnippet, id: string, isLocal?: boolean) => void;
+  deleteSnippet: (id: string) => void;
+  toggleSnippetPin: (id: string) => void;
+  toggleSnippetPublic: (id: string) => void;
+  saveSnippet: (id: string) => void;
+  unsaveSnippet: (id: string) => void;
   getSavedSnippets: () => Promise<void>;
-  checkIfSaved: (id: number) => Promise<boolean>;
+  checkIfSaved: (id: string) => Promise<boolean>;
   countTags: () => Promise<void>;
   countPublicTags: () => Promise<void>;
   searchSnippets: (query: SearchQuery) => Promise<void>;
-  likeSnippet: (id: number) => Promise<void>;
-  unlikeSnippet: (id: number) => Promise<void>;
-  checkIfLiked: (id: number) => Promise<{ liked: boolean; likes_count: number }>;
-  batchCheckLikes: (ids: number[]) => Promise<void>;
-  likedSnippetsCache: Map<number, { liked: boolean; likes_count: number }>;
+  likeSnippet: (id: string) => Promise<void>;
+  unlikeSnippet: (id: string) => Promise<void>;
+  checkIfLiked: (id: string) => Promise<{ liked: boolean; likes_count: number }>;
+  batchCheckLikes: (ids: string[]) => Promise<void>;
+  likedSnippetsCache: Map<string, { liked: boolean; likes_count: number }>;
 }
 
 export const SnippetsContext = createContext<SnippetsContextType>({} as SnippetsContextType);
@@ -81,7 +81,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
   const [tagCount, setTagCount] = useState<TagCount[]>([]);
   const [publicTagCount, setPublicTagCount] = useState<TagCount[]>([]);
   const [savedSnippets, setSavedSnippets] = useState<Snippet[]>([]);
-  const [likedSnippetsCache, setLikedSnippetsCache] = useState<Map<number, { liked: boolean; likes_count: number }>>(
+  const [likedSnippetsCache, setLikedSnippetsCache] = useState<Map<string, { liked: boolean; likes_count: number }>>(
     new Map()
   );
   const [pagination, setPagination] = useState({
@@ -126,15 +126,15 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const getSnippetById = (id: number): void => {
+  const getSnippetById = (id: string): void => {
     axios
       .get<Response<Snippet>>(`/api/snippets/${id}`)
       .then(res => setCurrentSnippet(res.data.data))
       .catch(err => redirectOnError());
   };
 
-  const setSnippet = (id: number): void => {
-    if (id < 0) {
+  const setSnippet = (id: string): void => {
+    if (id === '') {
       setCurrentSnippet(null);
       return;
     }
@@ -164,7 +164,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
 
   const updateSnippet = (
     snippet: NewSnippet,
-    id: number,
+    id: string,
     isLocal?: boolean
   ): void => {
     axios
@@ -188,7 +188,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       .catch(err => redirectOnError());
   };
 
-  const deleteSnippet = (id: number): void => {
+  const deleteSnippet = (id: string): void => {
     if (window.confirm('Are you sure you want to delete this snippet?')) {
       axios
         .delete<Response<{}>>(`/api/snippets/${id}`)
@@ -198,14 +198,14 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
             ...snippets.slice(0, deletedSnippetIdx),
             ...snippets.slice(deletedSnippetIdx + 1)
           ]);
-          setSnippet(-1);
+          setSnippet('');
           history.push('/snippets');
         })
         .catch(err => redirectOnError());
     }
   };
 
-  const toggleSnippetPin = (id: number): void => {
+  const toggleSnippetPin = (id: string): void => {
     const snippet = snippets.find(s => s.id === id);
 
     if (snippet) {
@@ -213,7 +213,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const toggleSnippetPublic = (id: number): void => {
+  const toggleSnippetPublic = (id: string): void => {
     const snippet = snippets.find(s => s.id === id);
 
     if (snippet) {
@@ -221,7 +221,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const saveSnippet = (id: number): void => {
+  const saveSnippet = (id: string): void => {
     axios
       .post<Response<{}>>('/api/saved', { snippetId: id })
       .then(res => {
@@ -231,7 +231,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       .catch(err => console.error('Error saving snippet:', err));
   };
 
-  const unsaveSnippet = (id: number): void => {
+  const unsaveSnippet = (id: string): void => {
     axios
       .delete<Response<{}>>(`/api/saved/${id}`)
       .then(res => {
@@ -251,7 +251,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const checkIfSaved = async (id: number): Promise<boolean> => {
+  const checkIfSaved = async (id: string): Promise<boolean> => {
     try {
       const { data } = await axios.get<Response<{ isSaved: boolean }>>(`/api/saved/check/${id}`);
       return data.data.isSaved;
@@ -299,7 +299,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const likeSnippet = async (id: number): Promise<void> => {
+  const likeSnippet = async (id: string): Promise<void> => {
     try {
       const { data } = await axios.post<Response<{ id: number; likes_count: number; liked: boolean }>>(`/api/likes/${id}`);
       
@@ -328,7 +328,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const unlikeSnippet = async (id: number): Promise<void> => {
+  const unlikeSnippet = async (id: string): Promise<void> => {
     try {
       const { data } = await axios.delete<Response<{ id: number; likes_count: number; liked: boolean }>>(`/api/likes/${id}`);
       
@@ -357,7 +357,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const checkIfLiked = async (id: number): Promise<{ liked: boolean; likes_count: number }> => {
+  const checkIfLiked = async (id: string): Promise<{ liked: boolean; likes_count: number }> => {
     // Check cache first
     if (likedSnippetsCache.has(id)) {
       return likedSnippetsCache.get(id)!;
@@ -381,7 +381,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
   };
   
   // New function to batch check likes for multiple snippets
-  const batchCheckLikes = async (ids: number[]): Promise<void> => {
+  const batchCheckLikes = async (ids: string[]): Promise<void> => {
     // Filter out IDs that are already in the cache
     const uncachedIds = ids.filter(id => !likedSnippetsCache.has(id));
     

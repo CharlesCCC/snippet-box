@@ -4,7 +4,7 @@ import Icon from '@mdi/react';
 import { mdiPin, mdiPinOutline } from '@mdi/js';
 
 interface Props {
-  id: number;
+  id: string;
   isPinned: boolean;
 }
 

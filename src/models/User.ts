@@ -3,7 +3,7 @@ import { sequelize } from '../db';
 import bcrypt from 'bcryptjs';
 
 export interface UserAttributes {
-  id: number;
+  id: string; // UUID stored as string
   email: string;
   password: string;
   user_name: string;
@@ -19,7 +19,7 @@ export interface UserCreationAttributes
 // Create a class that extends Model with the instance method
 export class UserInstance extends Model<UserAttributes, UserCreationAttributes> 
   implements UserAttributes {
-  public id!: number;
+  public id!: string;
   public email!: string;
   public password!: string;
   public user_name!: string;
@@ -38,9 +38,9 @@ export class UserInstance extends Model<UserAttributes, UserCreationAttributes>
 UserInstance.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
     },
     email: {
       type: DataTypes.STRING,

@@ -157,14 +157,14 @@ export const getSnippet = asyncWrapper(
     
     // Add debug logging
     console.log('Snippet access check:');
-    console.log('- User ID:', userId, 'Type:', typeof userId);
+    console.log('- User ID:', userId ? userId : 'Unauthenticated', 'Type:', typeof userId);
     console.log('- Snippet User ID:', snippetUserId, 'Type:', typeof snippetUserId);
     console.log('- Is Public:', isPublic);
-    console.log('- Access allowed:', isPublic || Number(userId) === Number(snippetUserId));
+    console.log('- Access allowed:', isPublic || userId === snippetUserId);
 
     // If snippet is private and user is not the owner, deny access
-    // Convert both IDs to numbers for comparison to avoid type mismatches
-    if (!isPublic && Number(userId) !== Number(snippetUserId)) {
+    // Direct string comparison for UUIDs
+    if (!isPublic && (!userId || userId !== snippetUserId)) {
       console.log('getSnippet controller - Access denied');
       return next(
         new ErrorResponse(
@@ -215,7 +215,7 @@ export const updateSnippet = asyncWrapper(
     console.log('updateSnippet snippetUserId', snippetUserId);
 
     // If user is not the owner, deny access
-    if (Number(userId) !== Number(snippetUserId)) {
+    if (userId !== snippetUserId) {
       return next(
         new ErrorResponse(
           403,
@@ -319,9 +319,12 @@ export const countTags = asyncWrapper(
       INNER JOIN snippets ON snippets_tags.snippet_id = snippets.id
     `;
     
+    let replacements = {};
+    
     if (userId) {
-      // Use quoted identifier for case-sensitive column name
-      query += `WHERE snippets."userId" = ${userId}`;
+      // Use quoted identifier for case-sensitive column name and parameterized query
+      query += `WHERE snippets.user_id = :userId`;
+      replacements = { userId };
     } else {
       query += `WHERE snippets.is_public = true`;
     }
@@ -332,6 +335,7 @@ export const countTags = asyncWrapper(
     `;
 
     const result = await sequelize.query(query, {
+      replacements,
       type: QueryTypes.SELECT
     });
 
@@ -347,7 +351,6 @@ export const countTags = asyncWrapper(
  * @request GET
  */
 export const getRawCode = asyncWrapper(
-  //TODO: to be fixed
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const snippet = await SnippetModel.findOne({
       where: { id: req.params.id }
@@ -373,14 +376,14 @@ export const getRawCode = asyncWrapper(
     
     // Add debug logging
     console.log('Snippet access check:');
-    console.log('- User ID:', userId, 'Type:', typeof userId);
+    console.log('- User ID:', userId ? userId : 'Unauthenticated', 'Type:', typeof userId);
     console.log('- Snippet User ID:', snippetUserId, 'Type:', typeof snippetUserId);
     console.log('- Is Public:', isPublic);
-    console.log('- Access allowed:', isPublic || Number(userId) === Number(snippetUserId));
+    console.log('- Access allowed:', isPublic || userId === snippetUserId);
 
     // If snippet is private and user is not the owner, deny access
-    // Convert both IDs to numbers for comparison to avoid type mismatches
-    if (!isPublic && Number(userId) !== Number(snippetUserId)) {
+    // Direct string comparison for UUIDs
+    if (!isPublic && (!userId || userId !== snippetUserId)) {
       console.log('getRawCode controller - Access denied');
       return next(
         new ErrorResponse(
@@ -468,7 +471,7 @@ export const searchSnippets = asyncWrapper(
         WHERE 
           (s.search_vector @@ websearch_to_tsquery('english', lower(:query)) OR
            t.search_vector @@ websearch_to_tsquery('english', lower(:query)))
-          ${userId ? `AND (s."userId" = :userId OR s.is_public = true)` : 'AND s.is_public = true'}
+          ${userId ? `AND (s.user_id = :userId OR s.is_public = true)` : 'AND s.is_public = true'}
           ${searchLanguages.length ? `AND LOWER(s.language) IN (:languages)` : ''}
           ${searchTags.length ? `AND LOWER(t.name) IN (:tags)` : ''}
         ORDER BY s.id, rank DESC
@@ -664,7 +667,7 @@ export const countPublicTags = asyncWrapper(
  */
 export const toggleLike = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id; // UUID is already a string, no need to parse
     const userId = (req as any).user?.id;
 
     // Find snippet

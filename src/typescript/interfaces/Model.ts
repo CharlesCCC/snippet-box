@@ -1,5 +1,5 @@
 export interface Model {
-  id: number;
+  id: string; // UUID stored as string
   createdAt: Date;
   updatedAt: Date;
 }

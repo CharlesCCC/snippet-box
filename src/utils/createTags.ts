@@ -4,10 +4,10 @@ import { TagModel, Snippet_TagModel } from '../models';
 
 export const createTags = async (
   parsedTags: Set<string>,
-  snippetId: number
+  snippetId: string
 ): Promise<void> => {
   // Get all tags
-  const rawAllTags = await sequelize.query<{ id: number; name: string }>(
+  const rawAllTags = await sequelize.query<{ id: string; name: string }>(
     `SELECT * FROM tags`,
     { type: QueryTypes.SELECT }
   );

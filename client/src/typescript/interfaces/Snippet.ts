@@ -10,7 +10,7 @@ export interface NewSnippet {
   isPinned: boolean;
   tags: string[];
   is_public?: boolean;
-  userId?: number;
+  userId?: string;
   likes_count?: number;
   user?: User;
 }

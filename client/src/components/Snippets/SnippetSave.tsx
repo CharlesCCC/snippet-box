@@ -4,7 +4,7 @@ import Icon from '@mdi/react';
 import { mdiBookmark, mdiBookmarkOutline } from '@mdi/js';
 
 interface Props {
-  id: number;
+  id: string;
 }
 
 export const SnippetSave = (props: Props): JSX.Element => {

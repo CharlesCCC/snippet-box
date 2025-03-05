@@ -3,7 +3,7 @@ import { sequelize } from '../db';
 import { Snippet, SnippetCreationAttributes } from '../typescript/interfaces';
 import { UserModel } from './User';
 
-const { INTEGER, STRING, DATE, TEXT } = DataTypes;
+const { UUID, UUIDV4, STRING, DATE, TEXT, INTEGER } = DataTypes;
 
 export interface SnippetInstance
   extends Model<Snippet, SnippetCreationAttributes>,
@@ -13,9 +13,9 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
   'Snippet',
   {
     id: {
-      type: INTEGER,
+      type: UUID,
       primaryKey: true,
-      autoIncrement: true
+      defaultValue: UUIDV4
     },
     title: {
       type: STRING,
@@ -46,7 +46,7 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
       field: 'is_pinned'
     },
     userId: {
-      type: INTEGER,
+      type: UUID,
       allowNull: true, // Make nullable for backward compatibility with existing data
       references: {
         model: 'users',

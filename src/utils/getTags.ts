@@ -1,7 +1,7 @@
 import { sequelize } from '../db';
 import { QueryTypes } from 'sequelize';
 
-export const getTags = async (snippetId: number): Promise<string[]> => {
+export const getTags = async (snippetId: string): Promise<string[]> => {
   const tags = await sequelize.query<{ name: string }>(
     `SELECT tags.name
     FROM tags
@@ -10,8 +10,11 @@ export const getTags = async (snippetId: number): Promise<string[]> => {
     INNER JOIN
       snippets ON snippets.id = snippets_tags.snippet_id
     WHERE 
-      snippets_tags.snippet_id = ${snippetId};`,
-    { type: QueryTypes.SELECT }
+      snippets_tags.snippet_id = :snippetId;`,
+    { 
+      replacements: { snippetId },
+      type: QueryTypes.SELECT 
+    }
   );
 
   return tags.map(tag => tag.name);

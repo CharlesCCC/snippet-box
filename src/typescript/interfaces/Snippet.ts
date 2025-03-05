@@ -10,7 +10,7 @@ export interface Snippet extends Model {
   isPinned: number;
   favorite: boolean;
   is_public: boolean;
-  userId?: number;
+  userId?: string;
   tags?: { name: string }[];
   likes_count: number;
 }

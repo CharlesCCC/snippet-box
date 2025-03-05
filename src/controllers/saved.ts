@@ -68,7 +68,7 @@ export const saveSnippet = asyncWrapper(
 export const unsaveSnippet = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = (req as any).user.id;
-    const snippetId = parseInt(req.params.id);
+    const snippetId = req.params.id;
 
     // Check if saved
     const savedSnippet = await UserSavedSnippetModel.findOne({
@@ -147,8 +147,22 @@ export const getSavedSnippets = asyncWrapper(
  */
 export const checkSavedSnippet = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // If user is not authenticated, return false for isSaved
+    if (!(req as any).user) {
+      console.debug('User not authenticated, returning isSaved: false');
+      res.status(200).json({
+        success: true,
+        data: {
+          isSaved: false
+        }
+      });
+      return;
+    }
+    
     const userId = (req as any).user.id;
-    const snippetId = parseInt(req.params.id);
+    const snippetId = req.params.id;
+
+    console.debug(`Checking if snippet ${snippetId} is saved by user ${userId}`);
 
     // Check if saved
     const savedSnippet = await UserSavedSnippetModel.findOne({

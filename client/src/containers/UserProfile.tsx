@@ -12,7 +12,7 @@ interface UserProfileParams {
 
 interface UserProfileData {
   user: {
-    id: number;
+    id: string;
     user_name: string;
     createdAt: string;
     updatedAt: string;

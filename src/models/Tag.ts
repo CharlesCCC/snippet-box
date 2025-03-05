@@ -2,7 +2,7 @@ import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../db';
 import { Tag, TagCreationAttributes } from '../typescript/interfaces';
 
-const { INTEGER, STRING } = DataTypes;
+const { UUID, UUIDV4, STRING } = DataTypes;
 
 export interface TagInstance extends Model<Tag, TagCreationAttributes>, Tag {}
 
@@ -10,9 +10,9 @@ export const TagModel = sequelize.define<TagInstance>(
   'Tag',
   {
     id: {
-      type: INTEGER,
+      type: UUID,
       primaryKey: true,
-      autoIncrement: true
+      defaultValue: UUIDV4
     },
     name: {
       type: STRING,

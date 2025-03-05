@@ -179,6 +179,21 @@ Examples of this mapping:
 - JS Property `isPinned` → DB Column `is_pinned`
 - JS Property `createdAt` → DB Column `created_at`
 
+### UUID Implementation
+
+The application uses UUIDs (Universally Unique Identifiers) for all primary and foreign keys instead of sequential integers. This provides several benefits:
+
+- **Global Uniqueness**: UUIDs are globally unique across all tables and databases, eliminating ID collisions.
+- **Security**: UUIDs are non-sequential and harder to guess, improving security.
+- **Distributed Systems**: Makes it easier to merge data from different database instances.
+- **Parallel Processing**: Allows for parallel inserts without ID conflicts.
+
+Technical implementation details:
+- PostgreSQL's `uuid-ossp` extension is used to generate UUIDs on the database side.
+- IDs are stored as UUID type in the database and as strings in the TypeScript interfaces.
+- The Sequelize ORM uses `DataTypes.UUID` type with `UUIDV4` default values.
+- Foreign key relationships maintain referential integrity using UUID types.
+
 ## Authentication
 
 Snippet Box now includes a comprehensive authentication system that allows users to:

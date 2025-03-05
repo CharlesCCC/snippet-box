@@ -22,7 +22,7 @@ export const Editor = (): JSX.Element => {
   // Set snippet
   useEffect(() => {
     if (id) {
-      setCurrentSnippet(+id);
+      setCurrentSnippet(id);
       setInEdit(true);
     }
   }, []);

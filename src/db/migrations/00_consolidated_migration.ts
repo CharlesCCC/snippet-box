@@ -5,13 +5,18 @@ const logger = new Logger('migration[consolidated]');
 
 module.exports = {
   up: async (queryInterface: QueryInterface): Promise<void> => {
+    // Create UUID extension if it doesn't exist (for PostgreSQL)
+    await queryInterface.sequelize.query(`
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    `);
+
     // 00_initial.ts - Create snippets table
     await queryInterface.createTable('snippets', {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
       },
       title: {
         type: DataTypes.STRING,
@@ -66,10 +71,10 @@ module.exports = {
     // 02_tags.ts - Create tags table
     await queryInterface.createTable('tags', {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
       },
       name: {
         type: DataTypes.STRING,
@@ -81,27 +86,40 @@ module.exports = {
     // 02_tags.ts - Create snippets_tags table
     await queryInterface.createTable('snippets_tags', {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
       },
       snippet_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: 'snippets',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       tag_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: 'tags',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       }
     });
 
     // 03_users.ts - Create users table
     await queryInterface.createTable('users', {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
+        allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
       },
       email: {
         type: DataTypes.STRING,
@@ -139,7 +157,7 @@ module.exports = {
 
     // 03_users.ts - Add user_id column to snippets table
     await queryInterface.addColumn('snippets', 'user_id', {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: true,
       references: {
         model: 'users',
@@ -152,12 +170,13 @@ module.exports = {
     // 05_user_saved_snippets.ts - Create user_saved_snippets table
     await queryInterface.createTable('user_saved_snippets', {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
+        allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
       },
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'users',
@@ -167,7 +186,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       snippet_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'snippets',
@@ -197,12 +216,13 @@ module.exports = {
     // 06_snippet_likes.ts - Create snippet_likes table
     await queryInterface.createTable('snippet_likes', {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
+        allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: Sequelize.literal('uuid_generate_v4()'),
       },
       user_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'users',
@@ -212,7 +232,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       snippet_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'snippets',
@@ -278,5 +298,8 @@ module.exports = {
     await queryInterface.dropTable('snippets_tags');
     await queryInterface.dropTable('tags');
     await queryInterface.dropTable('snippets');
+
+    // Drop UUID extension if needed (commented out for safety)
+    // await queryInterface.sequelize.query(`DROP EXTENSION IF EXISTS "uuid-ossp";`);
   }
 }; 

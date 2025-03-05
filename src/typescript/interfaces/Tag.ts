@@ -1,7 +1,7 @@
 import { Optional } from 'sequelize';
 
 export interface Tag {
-  id: number;
+  id: string; // UUID stored as string
   name: string;
 }
 

@@ -6,7 +6,7 @@ import { UserModel, SnippetModel } from '../models';
 
 // Define interface for decoded JWT token
 interface DecodedToken {
-  id: number;
+  id: string; // UUID stored as string
   iat: number;
   exp: number;
 }
@@ -40,7 +40,7 @@ export const protect = asyncWrapper(
       }
       
       // Check if this is a request for a specific snippet
-      const snippetIdMatch = req.path.match(/^\/(\d+)$/);
+      const snippetIdMatch = req.path.match(/^\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
       if (snippetIdMatch && req.method === 'GET') {
         const snippetId = snippetIdMatch[1];
         console.log('Auth middleware - Checking if snippet is public:', snippetId);
@@ -98,14 +98,15 @@ export const protect = asyncWrapper(
   }
 );
 
-// Optional protect middleware - doesn't block unauthenticated users
+/**
+ * Optional protection middleware - Verifies JWT if present, but doesn't require authentication
+ * Allows accessing public resources while still identifying the user if logged in
+ */
 export const optionalProtect = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     let token;
     
-    // Debug logging
     console.log('Optional Auth middleware - Request path:', req.path);
-    console.log('Optional Auth middleware - Request method:', req.method);
     
     // Check both authorization header AND cookies
     const cookies = req.headers.cookie?.split(';').reduce((acc: {[key: string]: string}, cookie) => {
@@ -118,37 +119,30 @@ export const optionalProtect = asyncWrapper(
 
     console.log('Token:', token ? 'Present' : 'Not present');
 
-    // If no token is present, just continue without attaching user
-    if (!token) {
-      console.log('Optional Auth middleware - No token, continuing without user');
-      return next();
-    } 
-    
-    // If token is present, verify it
-    try {
-      console.log('Optional Auth middleware - Verifying token');
-      const decoded = jwt.verify(
-        token, 
-        process.env.JWT_SECRET || 'snippetboxsecret'
-      ) as DecodedToken;
+    // If token exists, verify it and attach user to request
+    if (token) {
+      try {
+        // Verify token
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET || 'snippetboxsecret'
+        ) as DecodedToken;
 
-      console.log('Optional Auth middleware - Token decoded, user ID:', decoded.id);
-      const user = await UserModel.findByPk(decoded.id);
-      
-      if (!user) {
-        console.log('Optional Auth middleware - User not found');
-        // Don't block, just continue without user
-        return next();
+        // Get user from database
+        const user = await UserModel.findByPk(decoded.id);
+
+        if (user) {
+          // Attach user to request object
+          (req as any).user = user;
+          console.log('Optional Auth middleware - User attached to request');
+        }
+      } catch (error) {
+        console.log('Optional Auth middleware - Invalid token, continuing as unauthenticated');
+        // Don't return error, just continue as unauthenticated
       }
-
-      console.log('Optional Auth middleware - User authenticated:', user.get('id'));
-      // Add proper typing for user
-      (req as any).user = user.get({ plain: true });
-      return next();
-    } catch (err) {
-      console.log('Optional Auth middleware - Token verification failed:', err);
-      // Don't block, just continue without user
-      return next();
     }
+
+    // Always proceed to the next middleware
+    next();
   }
 ); 
