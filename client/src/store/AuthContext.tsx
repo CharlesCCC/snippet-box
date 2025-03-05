@@ -155,23 +155,29 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
   };
 
   // Update user details
-  const updateDetails = async (email: string) => {
-    setAuthState(prevState => ({ ...prevState, loading: true }));
-
+  const updateDetails = async (email: string, user_name: string) => {
     try {
-      const res = await axios.put<Response<User>>('/api/auth/updatedetails', { email });
+      setAuthState(prevState => ({
+        ...prevState,
+        loading: true,
+        error: null
+      }));
+
+      const res = await axios.put<Response<User>>('/api/auth/updatedetails', {
+        email,
+        user_name
+      });
 
       setAuthState(prevState => ({
         ...prevState,
         user: res.data.data,
-        loading: false,
-        error: null
+        loading: false
       }));
     } catch (err: any) {
       setAuthState(prevState => ({
         ...prevState,
-        loading: false,
-        error: err.response?.data?.error || 'Update failed'
+        error: err.response?.data?.error || 'Failed to update profile',
+        loading: false
       }));
     }
   };

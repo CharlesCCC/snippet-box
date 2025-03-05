@@ -1,4 +1,4 @@
-import { Model, DataTypes } from 'sequelize';
+import { Model, DataTypes, Optional } from 'sequelize';
 import { sequelize } from '../db';
 import bcrypt from 'bcryptjs';
 
@@ -6,6 +6,7 @@ export interface UserAttributes {
   id: number;
   email: string;
   password: string;
+  user_name: string;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
   createdAt?: Date;
@@ -15,19 +16,31 @@ export interface UserAttributes {
 export interface UserCreationAttributes
   extends Omit<UserAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
 
-export interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {
-  comparePassword(enteredPassword: string): Promise<boolean>;
+// Create a class that extends Model with the instance method
+export class UserInstance extends Model<UserAttributes, UserCreationAttributes> 
+  implements UserAttributes {
+  public id!: number;
+  public email!: string;
+  public password!: string;
+  public user_name!: string;
+  public resetPasswordToken?: string;
+  public resetPasswordExpire?: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+
+  // Instance method
+  public async comparePassword(enteredPassword: string): Promise<boolean> {
+    return await bcrypt.compare(enteredPassword, this.password);
+  }
 }
 
-export const UserModel = sequelize.define<UserInstance>(
-  'User',
+// Initialize the model with the class
+UserInstance.init(
   {
     id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
+      primaryKey: true
     },
     email: {
       type: DataTypes.STRING,
@@ -40,6 +53,15 @@ export const UserModel = sequelize.define<UserInstance>(
     password: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    user_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      defaultValue: () => {
+        // Generate a random username if not provided
+        return 'user_' + Math.random().toString(36).substring(2, 10);
+      }
     },
     resetPasswordToken: {
       type: DataTypes.STRING,
@@ -58,6 +80,7 @@ export const UserModel = sequelize.define<UserInstance>(
   },
   {
     tableName: 'users',
+    sequelize,
     hooks: {
       beforeSave: async (user: UserInstance) => {
         // Only hash password if it's modified or new
@@ -70,7 +93,4 @@ export const UserModel = sequelize.define<UserInstance>(
   }
 );
 
-// Method to compare passwords
-UserModel.prototype.comparePassword = async function(enteredPassword: string): Promise<boolean> {
-  return await bcrypt.compare(enteredPassword, this.password);
-}; 
+export const UserModel = UserInstance; 

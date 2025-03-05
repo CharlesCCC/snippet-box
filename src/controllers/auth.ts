@@ -41,7 +41,12 @@ const sendTokenResponse = (
     .cookie('token', token, options)
     .json({
       success: true,
-      token
+      token,
+      data: {
+        id: user.id,
+        email: user.email,
+        user_name: user.user_name
+      }
     });
 };
 
@@ -68,7 +73,8 @@ export const register = asyncWrapper(
     // Create user
     const user = await UserModel.create({
       email,
-      password
+      password,
+      user_name: `user_${Math.random().toString(36).substring(2, 10)}` // Generate random username
     });
 
     // Send token response
@@ -135,7 +141,7 @@ export const getMe = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     // User is already available in req due to the protect middleware
     const user = await UserModel.findByPk((req as any).user.id, {
-      attributes: ['id', 'email', 'createdAt', 'updatedAt']
+      attributes: ['id', 'email', 'user_name', 'createdAt', 'updatedAt']
     });
 
     res.status(200).json({
@@ -152,23 +158,37 @@ export const getMe = asyncWrapper(
  */
 export const updateDetails = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { email } = req.body;
+    const { email, user_name } = req.body;
 
-    // Update user email
+    // Update user details
     const user = await UserModel.findByPk((req as any).user.id);
     
     if (!user) {
       return next(new ErrorResponse(404, 'User not found'));
     }
 
+    // Check if username is already taken
+    if (user_name && user_name !== user.user_name) {
+      const existingUser = await UserModel.findOne({ where: { user_name } });
+      if (existingUser) {
+        return next(new ErrorResponse(400, 'Username is already taken'));
+      }
+    }
+
+    // Update fields
     user.email = email;
+    if (user_name) {
+      user.user_name = user_name;
+    }
+    
     await user.save();
 
     res.status(200).json({
       success: true,
       data: {
         id: user.id,
-        email: user.email
+        email: user.email,
+        user_name: user.user_name
       }
     });
   }

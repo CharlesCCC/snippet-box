@@ -173,7 +173,8 @@ Snippet Box now includes a comprehensive authentication system that allows users
 - Login to access their snippets
 - Logout to end their session
 - Reset forgotten passwords
-- Update their account details and password
+- Update their account details and username
+- Manage their profile with a unique username
 
 ### Authentication Endpoints
 
@@ -183,7 +184,7 @@ Snippet Box now includes a comprehensive authentication system that allows users
 | `/api/auth/login` | POST | Login with email and password | No |
 | `/api/auth/logout` | GET | Logout and clear cookie | No |
 | `/api/auth/me` | GET | Get current user details | Yes |
-| `/api/auth/updatedetails` | PUT | Update user email | Yes |
+| `/api/auth/updatedetails` | PUT | Update user email and username | Yes |
 | `/api/auth/updatepassword` | PUT | Update user password | Yes |
 | `/api/auth/forgotpassword` | POST | Request password reset | No |
 | `/api/auth/resetpassword/:resettoken` | PUT | Reset password with token | No |

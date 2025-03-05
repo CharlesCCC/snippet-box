@@ -1,6 +1,7 @@
 export interface User {
   id: number;
   email: string;
+  user_name: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -40,7 +41,7 @@ export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
-  updateDetails: (email: string) => Promise<void>;
+  updateDetails: (email: string, user_name: string) => Promise<void>;
   updatePassword: (data: UpdatePasswordData) => Promise<void>;
   forgotPassword: (data: ForgotPasswordData) => Promise<void>;
   resetPassword: (resetToken: string, data: ResetPasswordData) => Promise<void>;

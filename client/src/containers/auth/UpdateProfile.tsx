@@ -7,22 +7,29 @@ import { Spinner } from '../../components/UI/Spinner';
 export const UpdateProfile: React.FC = () => {
   const { user, updateDetails, loading, error, clearError } = useContext(AuthContext);
   const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [success, setSuccess] = useState(false);
 
   // Set initial form data from user context
   useEffect(() => {
     if (user) {
       setEmail(user.email);
+      setUserName(user.user_name || '');
     }
   }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    const { name, value } = e.target;
+    if (name === 'email') {
+      setEmail(value);
+    } else if (name === 'user_name') {
+      setUserName(value);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await updateDetails(email);
+    await updateDetails(email, userName);
     setSuccess(true);
     
     // Reset success message after 3 seconds
@@ -52,6 +59,19 @@ export const UpdateProfile: React.FC = () => {
                 <Spinner />
               ) : (
                 <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label htmlFor="user_name" className="form-label">Username</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="user_name"
+                      name="user_name"
+                      value={userName}
+                      onChange={handleChange}
+                      required
+                    />
+                    <small className="text-muted">Your unique username for the platform</small>
+                  </div>
                   <div className="mb-3">
                     <label htmlFor="email" className="form-label">Email Address</label>
                     <input
