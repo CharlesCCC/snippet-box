@@ -5,6 +5,8 @@ import { Layout, PageHeader, Card } from '../components/UI';
 import { SnippetsContext } from '../store';
 import { SnippetDetails } from '../components/Snippets/SnippetDetails';
 import { SnippetDocs } from '../components/Snippets/SnippetDocs';
+import { CommentList } from '../components/Comments';
+import { CommentProvider } from '../store';
 
 interface Params {
   id: string;
@@ -46,6 +48,15 @@ export const Snippet = (): JSX.Element => {
               </Card>
             </div>
           )}
+          
+          {/* COMMENTS SECTION */}
+          <div className='col-12 mt-3'>
+            <Card title='Comments'>
+              <CommentProvider>
+                <CommentList snippetId={currentSnippet.id} />
+              </CommentProvider>
+            </Card>
+          </div>
         </Fragment>
       )}
     </Layout>

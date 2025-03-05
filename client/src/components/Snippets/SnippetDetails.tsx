@@ -92,137 +92,142 @@ export const SnippetDetails = (props: Props): JSX.Element => {
   };
 
   return (
-    <Card>
-      <h5 className='card-title d-flex align-items-center justify-content-between'>
-        <div className="d-flex align-items-center">
-          {title}
-          <div className="ms-2">
-            <SnippetLike id={id} likes_count={likes_count} />
-          </div>
-        </div>
-        <div className="d-flex align-items-center">
-          <div className="me-2">
-            <SnippetSave id={id} />
-          </div>
-          <SnippetPin id={id} isPinned={isPinned} />
-        </div>
-      </h5>
-      <p>{description}</p>
-
-      {/* LANGUAGE */}
-      <div className={`d-flex justify-content-between`}>
-        <span>Language</span>
-        <span className='fw-bold'>{language}</span>
-      </div>
-
-      {/* CREATOR */}
-      {user && (
-        <div className={`d-flex justify-content-between align-items-center`}>
-          <span>Creator</span>
+    <>
+      <Card>
+        <h5 className='card-title d-flex align-items-center justify-content-between'>
           <div className="d-flex align-items-center">
-            <Icon path={mdiAccount} size={0.8} className="me-1" />
-            <Link to={`/${user.user_name}`} className="text-decoration-none">
-              <span>{user.user_name}</span>
-            </Link>
+            {title}
+            <div className="ms-2">
+              <SnippetLike id={id} likes_count={likes_count} />
+            </div>
           </div>
+          <div className="d-flex align-items-center">
+            <div className="me-2">
+              <SnippetSave id={id} />
+            </div>
+            <SnippetPin id={id} isPinned={isPinned} />
+          </div>
+        </h5>
+        <p>{description}</p>
+
+        {/* LANGUAGE */}
+        <div className={`d-flex justify-content-between`}>
+          <span>Language</span>
+          <span className='fw-bold'>{language}</span>
         </div>
-      )}
 
-      {/* CREATED AT */}
-      <div className={`d-flex justify-content-between`}>
-        <span>Created</span>
-        <span>{creationDate.relative}</span>
-      </div>
+        {/* CREATED AT */}
+        <div className={`d-flex justify-content-between`}>
+          <span>Created</span>
+          <span>{creationDate.relative}</span>
+        </div>
 
-      {/* UPDATED AT */}
-      <div className={`d-flex justify-content-between`}>
-        <span>Last updated</span>
-        <span>{updateDate.relative}</span>
-      </div>
-      <hr />
-
-      {/* TAGS */}
-      <div>
-        {tags.map((tag, idx) => (
-          <span className='me-2' key={idx}>
-            <Badge text={tag} color='light' />
-          </span>
-        ))}
-      </div>
-      <hr />
-
-      {/* ACTIONS */}
-      <div className='d-grid g-2' style={{ rowGap: '10px' }}>
-        {/* Only show Delete and Edit buttons if user is the owner */}
-        {isOwner && (
-          <>
-            <Button
-              text='Delete'
-              color='danger'
-              small
-              outline
-              handler={() => deleteSnippet(id)}
-            />
-
-            <Button
-              text='Edit'
-              color='secondary'
-              small
-              outline
-              handler={() => {
-                setSnippet(id);
-                history.push({
-                  pathname: `/editor/${id}`,
-                  state: { from: window.location.pathname }
-                });
-              }}
-            />
-          </>
+        {/* UPDATED AT */}
+        <div className={`d-flex justify-content-between`}>
+          <span>Last updated</span>
+          <span>{updateDate.relative}</span>
+        </div>
+        
+        {/* CREATOR */}
+        {user && (
+          <div className={`d-flex justify-content-between align-items-center`}>
+            <span>Creator</span>
+            <div className="d-flex align-items-center">
+              <Icon path={mdiAccount} size={0.8} className="me-1" />
+              <Link to={`/${user.user_name}`} className="text-decoration-none">
+                <span>{user.user_name}</span>
+              </Link>
+            </div>
+          </div>
         )}
 
-        {/* SHARE SECTION */}
-        <div className='d-flex justify-content-between mb-2'>
-          <div className='me-2 flex-grow-1'>
-            <Button
-              text={copySuccess ? 'Copied!' : 'Copy URL'}
-              color='secondary'
-              outline
-              handler={copyUrlHandler}
-            />
-            {copySuccess && <span className="ms-2 text-success small">✓</span>}
-          </div>
-          <div className='d-flex'>
-            <button 
-              className='btn btn-sm btn-outline-secondary me-2' 
-              onClick={shareToTwitter}
-              title="Share on Twitter/X"
-            >
-              <Icon path={mdiTwitter} size={0.8} />
-            </button>
-            <button 
-              className='btn btn-sm btn-outline-secondary me-2' 
-              onClick={shareToFacebook}
-              title="Share on Facebook"
-            >
-              <Icon path={mdiFacebook} size={0.8} />
-            </button>
-            <button 
-              className='btn btn-sm btn-outline-secondary me-2' 
-              onClick={shareToLinkedin}
-              title="Share on LinkedIn"
-            >
-              <Icon path={mdiLinkedin} size={0.8} />
-            </button>
-            <button 
-              className='btn btn-sm btn-outline-secondary' 
-              onClick={shareByEmail}
-              title="Share via Email"
-            >
-              <Icon path={mdiEmail} size={0.8} />
-            </button>
+        <hr />
+
+        {/* TAGS */}
+        <div>
+          {tags.map((tag, idx) => (
+            <span className='me-2' key={idx}>
+              <a href={currentUser ? `/snippets?tag=${tag}` : `/?tag=${tag}`} className="text-decoration-none">
+                <Badge text={tag} color='light' />
+              </a>
+            </span>
+          ))}
+        </div>
+        <hr />
+
+        {/* ACTIONS */}
+        <div className='d-grid g-2' style={{ rowGap: '10px' }}>
+          {/* Only show Delete and Edit buttons if user is the owner */}
+          {isOwner && (
+            <>
+              <Button
+                text='Delete'
+                color='danger'
+                small
+                outline
+                handler={() => deleteSnippet(id)}
+              />
+
+              <Button
+                text='Edit'
+                color='secondary'
+                small
+                outline
+                handler={() => {
+                  setSnippet(id);
+                  history.push({
+                    pathname: `/editor/${id}`,
+                    state: { from: window.location.pathname }
+                  });
+                }}
+              />
+            </>
+          )}
+
+          {/* SHARE SECTION */}
+          <div className='d-flex justify-content-between mb-2'>
+            <div className='me-2 flex-grow-1'>
+              <Button
+                text={copySuccess ? 'Copied!' : 'Copy URL'}
+                color='secondary'
+                outline
+                handler={copyUrlHandler}
+              />
+              {copySuccess && <span className="ms-2 text-success small">✓</span>}
+            </div>
+            <div className='d-flex'>
+              <button 
+                className='btn btn-sm btn-outline-secondary me-2' 
+                onClick={shareToTwitter}
+                title="Share on Twitter/X"
+              >
+                <Icon path={mdiTwitter} size={0.8} />
+              </button>
+              <button 
+                className='btn btn-sm btn-outline-secondary me-2' 
+                onClick={shareToFacebook}
+                title="Share on Facebook"
+              >
+                <Icon path={mdiFacebook} size={0.8} />
+              </button>
+              <button 
+                className='btn btn-sm btn-outline-secondary me-2' 
+                onClick={shareToLinkedin}
+                title="Share on LinkedIn"
+              >
+                <Icon path={mdiLinkedin} size={0.8} />
+              </button>
+              <button 
+                className='btn btn-sm btn-outline-secondary' 
+                onClick={shareByEmail}
+                title="Share via Email"
+              >
+                <Icon path={mdiEmail} size={0.8} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </>
   );
 };

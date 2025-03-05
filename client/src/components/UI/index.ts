@@ -5,3 +5,4 @@ export * from './PageHeader';
 export * from './Button';
 export * from './EmptyState';
 export * from './Pagination';
+export * from './Spinner';
