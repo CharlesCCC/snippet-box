@@ -6,3 +6,5 @@ export * from './Body';
 export * from './SearchQuery';
 export * from './UserSavedSnippet';
 export * from './SnippetLike';
+export * from './User';
+export * from './Comment';

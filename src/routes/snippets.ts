@@ -15,7 +15,13 @@ import {
 import { requireBody } from "../middleware";
 import { protect, optionalProtect } from "../middleware/auth";
 
+// Import the comments router
+import commentsRouter from './comments';
+
 export const snippetRouter = Router();
+
+// Re-route to comments router
+snippetRouter.use('/:snippetId/comments', commentsRouter);
 
 // Public routes - accessible without authentication
 snippetRouter.route("/public").get(getAllSnippetsForPublic);

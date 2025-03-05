@@ -4,3 +4,4 @@ export * from './Snippet_Tag';
 export * from './User';
 export * from './UserSavedSnippet';
 export * from './SnippetLike';
+export * from './Comment';
