@@ -16,13 +16,11 @@ axios.interceptors.request.use(
       .split(';')
       .find(cookie => cookie.trim().startsWith('token='));
     
-    console.log('Interceptor token:', token);
+    // console.log('Interceptor token:', token);
     
     if (token) {
       const tokenValue = token.split('=')[1];
       config.headers.Authorization = `Bearer ${tokenValue}`;
-    } else {
-      console.warn('No token found in cookies');
     }
     return config;
   },

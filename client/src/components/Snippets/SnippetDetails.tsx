@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { SnippetsContext } from '../../store';
 import { Snippet } from '../../typescript/interfaces';
@@ -10,7 +10,13 @@ import { SnippetLike } from './SnippetLike';
 import { SnippetSave } from './SnippetSave';
 import { AuthContext } from '../../store';
 import Icon from '@mdi/react';
-import { mdiAccount } from '@mdi/js';
+import { 
+  mdiAccount, 
+  mdiTwitter, 
+  mdiFacebook, 
+  mdiLinkedin, 
+  mdiEmail,
+} from '@mdi/js';
 import { Link } from 'react-router-dom';
 
 interface Props {
@@ -34,6 +40,7 @@ export const SnippetDetails = (props: Props): JSX.Element => {
   } = props.snippet;
 
   const history = useHistory();
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const { deleteSnippet, setSnippet } = useContext(SnippetsContext);
   const { user: currentUser } = useContext(AuthContext);
@@ -44,9 +51,46 @@ export const SnippetDetails = (props: Props): JSX.Element => {
   // Check if the current user is the owner of the snippet
   const isOwner = currentUser && userId && currentUser.id === userId;
 
-  // const copyHandler = () => {
-  //   copy(code);
-  // };
+  // Handle copying the URL to clipboard
+  const copyUrlHandler = () => {
+    const { protocol, host, pathname } = window.location;
+    const url = `${protocol}//${host}${pathname}`;
+    copy(url);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  // Get current page URL for sharing
+  const getPageUrl = () => {
+    const { protocol, host, pathname } = window.location;
+    return encodeURIComponent(`${protocol}//${host}${pathname}`);
+  };
+
+  // Social share handlers
+  const shareToTwitter = () => {
+    const url = getPageUrl();
+    const text = encodeURIComponent(`Check out this code snippet: ${title}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+  };
+
+  const shareToFacebook = () => {
+    const url = getPageUrl();
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+  };
+
+  const shareToLinkedin = () => {
+    const url = getPageUrl();
+    const shareTitle = encodeURIComponent(`Code Snippet: ${title}`);
+    const summary = encodeURIComponent(description || 'Check out this code snippet');
+    window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${shareTitle}&summary=${summary}`, '_blank');
+  };
+
+  const shareByEmail = () => {
+    const url = getPageUrl();
+    const subject = encodeURIComponent(`Code Snippet: ${title}`);
+    const body = `Check out this code snippet: ${url}`;
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+  };
 
   return (
     <Card>
@@ -137,25 +181,48 @@ export const SnippetDetails = (props: Props): JSX.Element => {
           </>
         )}
 
-        {/* TODO: to be fixed */}
-        {/* <Button
-          text='Copy raw url'
-          color='secondary'
-          small
-          outline
-          handler={() => {
-            const { protocol, host } = window.location;
-            const rawUrl = `${protocol}//${host}/api/snippets/raw/${id}`;
-            copy(rawUrl);
-          }}
-        /> */}
-
-        <Button
-          text='Copy code'
-          color='secondary'
-          small
-          handler={() => copy(code)}
-        />
+        {/* SHARE SECTION */}
+        <div className='d-flex justify-content-between mb-2'>
+          <div className='me-2 flex-grow-1'>
+            <Button
+              text={copySuccess ? 'Copied!' : 'Copy URL'}
+              color='secondary'
+              outline
+              handler={copyUrlHandler}
+            />
+            {copySuccess && <span className="ms-2 text-success small">✓</span>}
+          </div>
+          <div className='d-flex'>
+            <button 
+              className='btn btn-sm btn-outline-secondary me-2' 
+              onClick={shareToTwitter}
+              title="Share on Twitter/X"
+            >
+              <Icon path={mdiTwitter} size={0.8} />
+            </button>
+            <button 
+              className='btn btn-sm btn-outline-secondary me-2' 
+              onClick={shareToFacebook}
+              title="Share on Facebook"
+            >
+              <Icon path={mdiFacebook} size={0.8} />
+            </button>
+            <button 
+              className='btn btn-sm btn-outline-secondary me-2' 
+              onClick={shareToLinkedin}
+              title="Share on LinkedIn"
+            >
+              <Icon path={mdiLinkedin} size={0.8} />
+            </button>
+            <button 
+              className='btn btn-sm btn-outline-secondary' 
+              onClick={shareByEmail}
+              title="Share via Email"
+            >
+              <Icon path={mdiEmail} size={0.8} />
+            </button>
+          </div>
+        </div>
       </div>
     </Card>
   );

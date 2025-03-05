@@ -78,7 +78,6 @@ export const SnippetCard = (props: Props): JSX.Element => {
             <Button
               text='View'
               color='secondary'
-              small
               outline
               classes='me-2'
               handler={() => {
@@ -87,9 +86,8 @@ export const SnippetCard = (props: Props): JSX.Element => {
             />
           </Link>
           <Button
-            text='Copy code'
+            text='Copy'
             color='secondary'
-            small
             handler={copyHandler}
           />
         </div>
