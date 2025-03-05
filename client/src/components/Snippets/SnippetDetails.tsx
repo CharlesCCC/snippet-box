@@ -25,7 +25,7 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     code,
     id,
     isPinned,
-    userId,
+    user_id,
     likes_count = 0
   } = props.snippet;
 
@@ -38,7 +38,7 @@ export const SnippetDetails = (props: Props): JSX.Element => {
   const updateDate = dateParser(updatedAt);
 
   // Check if the current user is the owner of the snippet
-  const isOwner = user && userId && user.id === userId;
+  const isOwner = user && user_id && user.id === user_id;
 
   // const copyHandler = () => {
   //   copy(code);
