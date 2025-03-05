@@ -116,8 +116,10 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       }
       
       setPagination(data.pagination);
+      return Promise.resolve();
     } catch (error) {
       console.error('Error fetching public snippets:', error);
+      return Promise.reject(error);
     }
   };
 

@@ -1,4 +1,4 @@
-import { useEffect, useContext, Fragment, useState } from 'react';
+import { useEffect, useContext, Fragment, useState, useRef, useCallback } from 'react';
 import { SnippetsContext } from '../store';
 import { Layout, PageHeader, EmptyState, Card, Button } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
@@ -18,6 +18,9 @@ export const Home = (): JSX.Element => {
   } = useContext(SnippetsContext);
   const [filter, setFilter] = useState<string | null>(null);
   const [localPublicSnippets, setLocalPublicSnippets] = useState<Snippet[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getSnippets();
@@ -33,6 +36,44 @@ export const Home = (): JSX.Element => {
   useEffect(() => {
     console.log('Public tag count updated:', publicTagCount);
   }, [publicTagCount]);
+
+  // Setup IntersectionObserver to automatically load more data
+  const loadMoreHandler = useCallback(() => {
+    if (pagination.page < pagination.totalPages && !isLoading) {
+      setIsLoading(true);
+      getPublicSnippets(pagination.page + 1).finally(() => {
+        setIsLoading(false);
+      });
+    }
+  }, [pagination.page, pagination.totalPages, isLoading, getPublicSnippets]);
+
+  useEffect(() => {
+    // Create IntersectionObserver to detect when user scrolls near the bottom
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && pagination.total >= 9) {
+          loadMoreHandler();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    // Observe the load more element
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMoreHandler, pagination.total]);
 
   const filterHandler = (tag: string) => {
     setFilter(tag);
@@ -56,12 +97,6 @@ export const Home = (): JSX.Element => {
   const clearFilterHandler = () => {
     setFilter(null);
     setLocalPublicSnippets([...publicSnippets]);
-  };
-
-  const loadMoreHandler = () => {
-    if (pagination.page < pagination.totalPages) {
-      getPublicSnippets(pagination.page + 1);
-    }
   };
 
   return (
@@ -129,12 +164,20 @@ export const Home = (): JSX.Element => {
               <div className='col-12 col-md-8 col-lg-9'>
                 <SnippetGrid snippets={localPublicSnippets} />
                 {pagination.page < pagination.totalPages && (
-                  <div className='d-grid mt-4'>
-                    <Button
-                      text='Load more'
-                      color='primary'
-                      handler={loadMoreHandler}
-                    />
+                  <div className='d-grid mt-4' ref={loadMoreRef}>
+                    {isLoading ? (
+                      <div className="text-center">
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+                    ) : pagination.total < 9 ? (
+                      <Button
+                        text='Load more'
+                        color='primary'
+                        handler={loadMoreHandler}
+                      />
+                    ) : null}
                   </div>
                 )}
               </div>
