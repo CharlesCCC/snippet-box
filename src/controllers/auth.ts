@@ -74,7 +74,7 @@ export const register = asyncWrapper(
     const user = await UserModel.create({
       email,
       password,
-      user_name: `user_${Math.random().toString(36).substring(2, 10)}` // Generate random username
+      user_name: `PromptUp_${Math.random().toString(36).substring(2, 10)}` // Generate random username
     });
 
     // Send token response

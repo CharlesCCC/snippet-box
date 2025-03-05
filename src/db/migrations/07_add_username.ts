@@ -17,7 +17,7 @@ module.exports = {
 
     // Update each user with a random username
     for (const user of users as {id: number}[]) {
-      const randomUsername = `user_${Math.random().toString(36).substring(2, 10)}`;
+      const randomUsername = `PromptUp_${Math.random().toString(36).substring(2, 10)}`;
       await queryInterface.sequelize.query(
         `UPDATE users SET user_name = ? WHERE id = ?`,
         {

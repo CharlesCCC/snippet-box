@@ -60,7 +60,7 @@ UserInstance.init(
       unique: true,
       defaultValue: () => {
         // Generate a random username if not provided
-        return 'user_' + Math.random().toString(36).substring(2, 10);
+        return 'PromptUp_' + Math.random().toString(36).substring(2, 10);
       }
     },
     resetPasswordToken: {

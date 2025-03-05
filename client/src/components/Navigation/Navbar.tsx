@@ -25,11 +25,8 @@ export const Navbar = (): JSX.Element => {
           {isAuthenticated && user ? (
             <>
               <li className='nav-item'>
-                <span className='nav-link'>{user.email}</span>
-              </li>
-              <li className='nav-item'>
                 <NavLink to='/profile' className='nav-link'>
-                  Profile
+                  {user.user_name}
                 </NavLink>
               </li>
               <li className='nav-item'>
