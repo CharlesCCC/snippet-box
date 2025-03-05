@@ -31,7 +31,7 @@ export const Navbar = (): JSX.Element => {
               </li>
               <li className='nav-item'>
                 <NavLink to='/profile' className='nav-link'>
-                  Update Profile
+                  Profile
                 </NavLink>
               </li>
               <li className='nav-item'>

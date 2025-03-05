@@ -4,6 +4,7 @@ import { Layout, PageHeader, EmptyState, Card, Button } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { SearchBar } from '../components/SearchBar';
 import { Snippet } from '../typescript/interfaces';
+import { useHistory, useLocation } from 'react-router-dom';
 
 export const Home = (): JSX.Element => {
   const { 
@@ -17,6 +18,8 @@ export const Home = (): JSX.Element => {
     countPublicTags,
     batchCheckLikes
   } = useContext(SnippetsContext);
+  const history = useHistory();
+  const location = useLocation();
   const [filter, setFilter] = useState<string | null>(null);
   const [localPublicSnippets, setLocalPublicSnippets] = useState<Snippet[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -33,7 +36,33 @@ export const Home = (): JSX.Element => {
   useEffect(() => {
     // Only update if the actual content changed
     if (JSON.stringify(prevPublicSnippetsRef.current) !== JSON.stringify(publicSnippets)) {
-      setLocalPublicSnippets([...publicSnippets]);
+      // Check if there's a tag filter in URL
+      const queryParams = new URLSearchParams(location.search);
+      const tagParam = queryParams.get('tag');
+      
+      if (tagParam && publicSnippets.length > 0) {
+        setFilter(tagParam);
+        
+        // Apply filter from URL
+        const filteredSnippets = publicSnippets.filter(snippet => {
+          if (Array.isArray(snippet.tags)) {
+            // If tags is an array of strings
+            if (typeof snippet.tags[0] === 'string') {
+              return snippet.tags.includes(tagParam);
+            }
+            // If tags is an array of objects with name property
+            else if (typeof snippet.tags[0] === 'object') {
+              return snippet.tags.some((t: any) => t.name === tagParam);
+            }
+          }
+          return false;
+        });
+        
+        setLocalPublicSnippets(filteredSnippets);
+      } else {
+        setLocalPublicSnippets([...publicSnippets]);
+      }
+      
       prevPublicSnippetsRef.current = [...publicSnippets];
       
       if (process.env.NODE_ENV === 'development') {
@@ -46,7 +75,7 @@ export const Home = (): JSX.Element => {
         batchCheckLikes(snippetIds);
       }
     }
-  }, [publicSnippets, pagination.limit, batchCheckLikes]);
+  }, [publicSnippets, pagination.limit, batchCheckLikes, location.search]);
 
   useEffect(() => {
     console.log('Public tag count updated:', publicTagCount);
@@ -91,6 +120,14 @@ export const Home = (): JSX.Element => {
   }, [loadMoreHandler, pagination.total]);
 
   const filterHandler = (tag: string) => {
+    // Update URL query parameter
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.set('tag', tag);
+    history.push({
+      pathname: location.pathname,
+      search: queryParams.toString()
+    });
+    
     setFilter(tag);
     // Check if tags is an array of strings or an array of objects with name property
     const filteredSnippets = publicSnippets.filter(snippet => {
@@ -110,6 +147,14 @@ export const Home = (): JSX.Element => {
   };
 
   const clearFilterHandler = () => {
+    // Remove tag from URL query parameter
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.delete('tag');
+    history.push({
+      pathname: location.pathname,
+      search: queryParams.toString()
+    });
+    
     setFilter(null);
     setLocalPublicSnippets([...publicSnippets]);
   };

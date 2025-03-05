@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import { Snippet } from '../../typescript/interfaces';
 import { dateParser, badgeColor } from '../../utils';
@@ -19,6 +19,7 @@ export const SnippetCard = (props: Props): JSX.Element => {
   const { title, description, language, code, id, createdAt, isPinned, is_public, likes_count = 0, user } =
     props.snippet;
   const { setSnippet } = useContext(SnippetsContext);
+  const location = useLocation();
 
   const copyHandler = () => {
     copy(code);
@@ -70,7 +71,8 @@ export const SnippetCard = (props: Props): JSX.Element => {
           <Link
             to={{
               pathname: `/snippet/${id}`,
-              state: { from: window.location.pathname }
+              search: location.search,
+              state: { from: window.location.pathname + location.search }
             }}
           >
             <Button

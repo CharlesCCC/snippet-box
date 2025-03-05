@@ -3,10 +3,13 @@ import { SnippetsContext } from '../store';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { Button, Card, EmptyState, Layout } from '../components/UI';
 import { Snippet } from '../typescript/interfaces';
+import { useHistory, useLocation } from 'react-router-dom';
 
 export const Snippets = (): JSX.Element => {
   const { snippets, tagCount, getSnippets, countTags } =
     useContext(SnippetsContext);
+  const history = useHistory();
+  const location = useLocation();
 
   const [filter, setFilter] = useState<string | null>(null);
   const [localSnippets, setLocalSnippets] = useState<Snippet[]>([]);
@@ -16,17 +19,43 @@ export const Snippets = (): JSX.Element => {
     countTags();
   }, []);
 
+  // Read filter from URL query parameter on initial load
   useEffect(() => {
-    setLocalSnippets([...snippets]);
-  }, [snippets]);
+    const queryParams = new URLSearchParams(location.search);
+    const tagParam = queryParams.get('tag');
+    
+    if (tagParam && snippets.length > 0) {
+      setFilter(tagParam);
+      const filteredSnippets = snippets.filter(s => s.tags.includes(tagParam));
+      setLocalSnippets(filteredSnippets);
+    } else {
+      setLocalSnippets([...snippets]);
+    }
+  }, [snippets, location.search]);
 
   const filterHandler = (tag: string) => {
+    // Update URL query parameter
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.set('tag', tag);
+    history.push({
+      pathname: location.pathname,
+      search: queryParams.toString()
+    });
+
     setFilter(tag);
     const filteredSnippets = snippets.filter(s => s.tags.includes(tag));
     setLocalSnippets(filteredSnippets);
   };
 
   const clearFilterHandler = () => {
+    // Remove tag from URL query parameter
+    const queryParams = new URLSearchParams(location.search);
+    queryParams.delete('tag');
+    history.push({
+      pathname: location.pathname,
+      search: queryParams.toString()
+    });
+
     setFilter(null);
     setLocalSnippets([...snippets]);
   };
