@@ -1,6 +1,6 @@
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { Navbar } from './components/Navigation/Navbar';
-import { Editor, Home, Snippet, Snippets, SavedSnippets } from './containers';
+import { Editor, Home, Snippet, Snippets, SavedSnippets, UserProfile } from './containers';
 import { 
   Login, 
   Register, 
@@ -33,6 +33,9 @@ export const App = () => {
             <ProtectedRoute path='/profile' component={UpdateProfile} />
             <ProtectedRoute path='/update-password' component={UpdatePassword} />
             <ProtectedRoute path='/saved' component={SavedSnippets} />
+            
+            {/* User Profile Route - Keep this last as it's a catch-all */}
+            <Route path='/:username' component={UserProfile} />
           </Switch>
         </SnippetsContextProvider>
       </AuthProvider>

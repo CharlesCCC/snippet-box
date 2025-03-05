@@ -3,12 +3,16 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../../store';
 import { Alert } from '../../components/UI/Alert';
 import { Spinner } from '../../components/UI/Spinner';
+import Icon from '@mdi/react';
+import { mdiContentCopy, mdiCheck } from '@mdi/js';
+import copy from 'clipboard-copy';
 
 export const UpdateProfile: React.FC = () => {
   const { user, updateDetails, loading, error, clearError } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [userName, setUserName] = useState('');
   const [success, setSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Set initial form data from user context
   useEffect(() => {
@@ -35,6 +39,17 @@ export const UpdateProfile: React.FC = () => {
     // Reset success message after 3 seconds
     setTimeout(() => {
       setSuccess(false);
+    }, 3000);
+  };
+
+  const handleCopyProfileLink = () => {
+    const shareableText = `Prompt Up your AI-power with: ${window.location.origin}/${userName}`;
+    copy(shareableText);
+    setCopied(true);
+    
+    // Reset copied state after 3 seconds
+    setTimeout(() => {
+      setCopied(false);
     }, 3000);
   };
 
@@ -91,10 +106,31 @@ export const UpdateProfile: React.FC = () => {
                 <Link to="/update-password" className="btn btn-outline-secondary">
                   Update Password
                 </Link>
+                {userName && (
+                  <button 
+                    onClick={handleCopyProfileLink} 
+                    className="btn btn-outline-primary ms-2"
+                    disabled={copied}
+                  >
+                    <Icon 
+                      path={copied ? mdiCheck : mdiContentCopy} 
+                      size={0.8} 
+                      className="me-1" 
+                    />
+                    {copied ? 'Copied!' : 'Share MyProfile'}
+                  </button>
+                )}
                 <Link to="/" className="btn btn-link">
                   Back to Home
                 </Link>
               </div>
+              {copied && (
+                <div className="mt-2">
+                  <small className="text-success">
+                    Profile link copied to clipboard!
+                  </small>
+                </div>
+              )}
             </div>
           </div>
         </div>

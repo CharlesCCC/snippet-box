@@ -11,6 +11,7 @@ import { SnippetSave } from './SnippetSave';
 import { AuthContext } from '../../store';
 import Icon from '@mdi/react';
 import { mdiAccount } from '@mdi/js';
+import { Link } from 'react-router-dom';
 
 interface Props {
   snippet: Snippet;
@@ -77,7 +78,9 @@ export const SnippetDetails = (props: Props): JSX.Element => {
           <span>Creator</span>
           <div className="d-flex align-items-center">
             <Icon path={mdiAccount} size={0.8} className="me-1" />
-            <span>{user.user_name}</span>
+            <Link to={`/${user.user_name}`} className="text-decoration-none">
+              <span>{user.user_name}</span>
+            </Link>
           </div>
         </div>
       )}

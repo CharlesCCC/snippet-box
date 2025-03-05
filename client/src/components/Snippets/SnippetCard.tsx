@@ -51,7 +51,9 @@ export const SnippetCard = (props: Props): JSX.Element => {
           {user && (
             <div className="d-flex align-items-center">
               <Icon path={mdiAccount} size={0.8} className="me-1" />
-              <small className="text-muted">{user.user_name}</small>
+              <Link to={`/${user.user_name}`} className="text-decoration-none">
+                <small className="text-muted">{user.user_name}</small>
+              </Link>
             </div>
           )}
           <p className="mb-0 small">{dateParser(createdAt).relative}</p>

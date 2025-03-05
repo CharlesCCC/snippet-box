@@ -25,14 +25,19 @@ export const Navbar = (): JSX.Element => {
           {isAuthenticated && user ? (
             <>
               <li className='nav-item'>
-                <NavLink to='/profile' className='nav-link'>
-                  {user.user_name}
-                </NavLink>
-              </li>
-              <li className='nav-item'>
                 <Link to='#' className='nav-link' onClick={() => logout()}>
                   Logout
                 </Link>
+              </li>
+              <li className='nav-item'>
+                <NavLink to='/profile' className='nav-link'>
+                  Update Profile
+                </NavLink>
+              </li>
+              <li className='nav-item'>
+                <NavLink to={`/${user.user_name}`} className='nav-link'>
+                  {user.user_name}
+                </NavLink>
               </li>
             </>
           ) : (

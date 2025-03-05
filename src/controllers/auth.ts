@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { asyncWrapper } from '../middleware';
-import { UserModel } from '../models';
+import { UserModel, SnippetModel, TagModel } from '../models';
 import { ErrorResponse, Logger } from '../utils';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -299,5 +299,73 @@ export const resetPassword = asyncWrapper(
     await user.save();
 
     sendTokenResponse(user, 200, res);
+  }
+);
+
+/**
+ * @description Get a user's public profile by username
+ * @route /api/auth/profile/:username
+ * @request GET
+ */
+export const getUserProfile = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const username = req.params.username;
+
+    // Find user by username
+    const user = await UserModel.findOne({
+      where: { user_name: username },
+      attributes: ['id', 'user_name', 'createdAt', 'updatedAt']
+    });
+
+    if (!user) {
+      return next(new ErrorResponse(404, 'User not found'));
+    }
+
+    // Get count of public snippets created by the user
+    const publicSnippetsCount = await SnippetModel.count({
+      where: {
+        userId: user.id,
+        is_public: true
+      }
+    });
+
+    // Get count of total likes received on the user's public snippets
+    const likesCount = await SnippetModel.sum('likes_count', {
+      where: {
+        userId: user.id,
+        is_public: true
+      }
+    }) || 0;
+
+    // Get all public snippets for the user
+    const snippets = await SnippetModel.findAll({
+      where: {
+        userId: user.id,
+        is_public: true
+      },
+      include: [
+        {
+          model: TagModel,
+          as: 'tags',
+          attributes: ['name'],
+          through: {
+            attributes: []
+          }
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        stats: {
+          publicSnippetsCount,
+          likesCount
+        },
+        snippets
+      }
+    });
   }
 ); 

@@ -241,6 +241,28 @@ If you're having trouble accessing snippets:
 3. Access protected routes with the token
 4. Logout to invalidate the token
 
+### User Profiles
+
+Snippet Box now includes public user profiles that allow users to:
+
+- View a user's basic information (username, join date)
+- See statistics about a user's contributions (number of snippets, total likes received)
+- Browse all public snippets created by a user
+
+#### Accessing User Profiles
+
+User profiles can be accessed directly via URL using the username:
+```
+http://localhost:3000/{username}
+```
+
+For example, to view the profile of a user with the username "john_doe":
+```
+http://localhost:3000/john_doe
+```
+
+You can also access user profiles by clicking on a username anywhere in the application.
+
 ### Environment Variables
 
 The authentication system uses the following environment variables:
