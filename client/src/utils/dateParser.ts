@@ -7,7 +7,15 @@ interface Return {
   relative: string;
 }
 
-export const dateParser = (date: Date): Return => {
+export const dateParser = (date?: Date | null): Return => {
+  // Handle cases where date is undefined or null
+  if (!date) {
+    return {
+      formatted: 'Date Unknown',
+      relative: 'Date Unknown'
+    };
+  }
+
   dayjs.extend(relativeTime);
   dayjs.extend(customParseFormat);
 

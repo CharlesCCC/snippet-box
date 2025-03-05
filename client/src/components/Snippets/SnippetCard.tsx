@@ -48,16 +48,15 @@ export const SnippetCard = (props: Props): JSX.Element => {
 
       <div className='mt-auto'>
         {/* CREATOR AND DATE */}
-        <div className="d-flex align-items-center justify-content-between mb-2">
-          {user && (
-            <div className="d-flex align-items-center">
-              <Icon path={mdiAccount} size={0.8} className="me-1" />
-              <Link to={`/${user.user_name}`} className="text-decoration-none">
-                <small className="text-muted">{user.user_name}</small>
-              </Link>
-            </div>
-          )}
-          <p className="mb-0 small">{dateParser(createdAt).relative}</p>
+        <div className="d-flex justify-content-between">
+          <div className="d-flex align-items-center">
+            <Icon path={mdiAccount} size={0.8} className="me-1" />
+            <Link to={`/${user ? user.user_name : '/'}`} className="text-decoration-none">
+                <small className="text-muted">{user ? user.user_name : 'Anonymous'}</small>
+            </Link>
+            <span className="mx-1 text-muted">·</span>
+            <p className="mb-0 small">{dateParser(createdAt).relative}</p>
+          </div>
         </div>
         
         {/* LIKES */}

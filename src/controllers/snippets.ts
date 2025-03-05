@@ -512,6 +512,8 @@ export const searchSnippets = asyncWrapper(
           const matchingSnippet = snippetsWithTags.find(s => s.id === snippet.id);
           return {
             ...snippet,
+            createdAt: snippet.createdAt || null,
+            updatedAt: snippet.updatedAt || null,
             tags: matchingSnippet?.get('tags')?.map((tag: any) => tag.name) || [],
             user: matchingSnippet?.get('user') || null
           };
