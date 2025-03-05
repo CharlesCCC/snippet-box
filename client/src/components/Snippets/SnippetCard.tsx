@@ -8,13 +8,15 @@ import copy from 'clipboard-copy';
 import { SnippetPin } from './SnippetPin';
 import { SnippetPublic } from './SnippetPublic';
 import { SnippetLike } from './SnippetLike';
+import Icon from '@mdi/react';
+import { mdiAccount } from '@mdi/js';
 
 interface Props {
   snippet: Snippet;
 }
 
 export const SnippetCard = (props: Props): JSX.Element => {
-  const { title, description, language, code, id, createdAt, isPinned, is_public, likes_count = 0 } =
+  const { title, description, language, code, id, createdAt, isPinned, is_public, likes_count = 0, user } =
     props.snippet;
   const { setSnippet } = useContext(SnippetsContext);
 
@@ -44,9 +46,19 @@ export const SnippetCard = (props: Props): JSX.Element => {
       <p>{description ? description : 'No description'}</p>
 
       <div className='mt-auto'>
-        {/* UPDATE DATE */}
-        <div className="d-flex align-items-center justify-content-between">
-          <p className="mb-0 small">Created {dateParser(createdAt).relative}</p>
+        {/* CREATOR AND DATE */}
+        <div className="d-flex align-items-center justify-content-between mb-2">
+          {user && (
+            <div className="d-flex align-items-center">
+              <Icon path={mdiAccount} size={0.8} className="me-1" />
+              <small className="text-muted">{user.user_name}</small>
+            </div>
+          )}
+          <p className="mb-0 small">{dateParser(createdAt).relative}</p>
+        </div>
+        
+        {/* LIKES */}
+        <div className="d-flex justify-content-end">
           <SnippetLike id={id} likes_count={likes_count} />
         </div>
         <hr />

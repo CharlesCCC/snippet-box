@@ -78,5 +78,5 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
 );
 
 // Set up relation between User and Snippet
-UserModel.hasMany(SnippetModel, { foreignKey: 'userId' });
-SnippetModel.belongsTo(UserModel, { foreignKey: 'userId' });
+UserModel.hasMany(SnippetModel, { foreignKey: 'userId', as: 'snippets' });
+SnippetModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'user' });

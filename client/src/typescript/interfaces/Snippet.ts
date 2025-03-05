@@ -1,4 +1,5 @@
 import { Model } from '.';
+import { User } from './Auth';
 
 export interface NewSnippet {
   title: string;
@@ -11,6 +12,7 @@ export interface NewSnippet {
   is_public?: boolean;
   userId?: number;
   likes_count?: number;
+  user?: User;
 }
 
 export interface Snippet extends Model, NewSnippet {}

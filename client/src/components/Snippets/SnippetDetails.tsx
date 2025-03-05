@@ -9,6 +9,8 @@ import { SnippetPin } from './SnippetPin';
 import { SnippetLike } from './SnippetLike';
 import { SnippetSave } from './SnippetSave';
 import { AuthContext } from '../../store';
+import Icon from '@mdi/react';
+import { mdiAccount } from '@mdi/js';
 
 interface Props {
   snippet: Snippet;
@@ -26,19 +28,20 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     id,
     isPinned,
     userId,
-    likes_count = 0
+    likes_count = 0,
+    user
   } = props.snippet;
 
   const history = useHistory();
 
   const { deleteSnippet, setSnippet } = useContext(SnippetsContext);
-  const { user } = useContext(AuthContext);
+  const { user: currentUser } = useContext(AuthContext);
 
   const creationDate = dateParser(createdAt);
   const updateDate = dateParser(updatedAt);
 
   // Check if the current user is the owner of the snippet
-  const isOwner = user && userId && user.id === userId;
+  const isOwner = currentUser && userId && currentUser.id === userId;
 
   // const copyHandler = () => {
   //   copy(code);
@@ -67,6 +70,17 @@ export const SnippetDetails = (props: Props): JSX.Element => {
         <span>Language</span>
         <span className='fw-bold'>{language}</span>
       </div>
+
+      {/* CREATOR */}
+      {user && (
+        <div className={`d-flex justify-content-between align-items-center`}>
+          <span>Creator</span>
+          <div className="d-flex align-items-center">
+            <Icon path={mdiAccount} size={0.8} className="me-1" />
+            <span>{user.user_name}</span>
+          </div>
+        </div>
+      )}
 
       {/* CREATED AT */}
       <div className={`d-flex justify-content-between`}>

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { QueryTypes, Op } from 'sequelize';
 import { sequelize } from '../db';
 import { asyncWrapper } from '../middleware';
-import { SnippetModel, Snippet_TagModel, TagModel } from '../models';
+import { SnippetModel, Snippet_TagModel, TagModel, UserModel } from '../models';
 import { ErrorResponse, tagParser, Logger, createTags } from '../utils';
 import { Body, SearchQuery } from '../typescript/interfaces';
 
@@ -78,14 +78,21 @@ export const getAllSnippets = asyncWrapper(
 
     const snippets = await SnippetModel.findAll({
       where: whereClause,
-      include: {
-        model: TagModel,
-        as: 'tags',
-        attributes: ['name'],
-        through: {
-          attributes: []
+      include: [
+        {
+          model: TagModel,
+          as: 'tags',
+          attributes: ['name'],
+          through: {
+            attributes: []
+          }
+        },
+        {
+          model: UserModel,
+          as: 'user',
+          attributes: ['id', 'email', 'user_name']
         }
-      }
+      ]
     });
 
     console.log('Found snippets:', snippets.length);
@@ -116,14 +123,21 @@ export const getSnippet = asyncWrapper(
     
     const snippet = await SnippetModel.findOne({
       where: { id: req.params.id },
-      include: {
-        model: TagModel,
-        as: 'tags',
-        attributes: ['name'],
-        through: {
-          attributes: []
+      include: [
+        {
+          model: TagModel,
+          as: 'tags',
+          attributes: ['name'],
+          through: {
+            attributes: []
+          }
+        },
+        {
+          model: UserModel,
+          as: 'user',
+          attributes: ['id', 'email', 'user_name']
         }
-      }
+      ]
     });
 
     if (!snippet) {
@@ -474,12 +488,19 @@ export const searchSnippets = asyncWrapper(
       if (snippetIds.length > 0) {
         const snippetsWithTags = await SnippetModel.findAll({
           where: { id: { [Op.in]: snippetIds } },
-          include: {
-            model: TagModel,
-            as: 'tags',
-            attributes: ['name'],
-            through: { attributes: [] }
-          },
+          include: [
+            {
+              model: TagModel,
+              as: 'tags',
+              attributes: ['name'],
+              through: { attributes: [] }
+            },
+            {
+              model: UserModel,
+              as: 'user',
+              attributes: ['id', 'email', 'user_name']
+            }
+          ],
           order: [['id', 'ASC']]
         });
 
@@ -488,7 +509,8 @@ export const searchSnippets = asyncWrapper(
           const matchingSnippet = snippetsWithTags.find(s => s.id === snippet.id);
           return {
             ...snippet,
-            tags: matchingSnippet?.get('tags')?.map((tag: any) => tag.name) || []
+            tags: matchingSnippet?.get('tags')?.map((tag: any) => tag.name) || [],
+            user: matchingSnippet?.get('user') || null
           };
         });
 
@@ -522,7 +544,14 @@ export const searchSnippets = asyncWrapper(
       // Use regular Sequelize query for tag/language only filtering
       const snippets = await SnippetModel.findAll({
         where: whereConditions,
-        include: includeOptions
+        include: [
+          includeOptions,
+          {
+            model: UserModel,
+            as: 'user',
+            attributes: ['id', 'email', 'user_name']
+          }
+        ]
       });
 
       const populatedSnippets = snippets.map(snippet => {
@@ -560,14 +589,21 @@ export const getAllSnippetsForPublic = asyncWrapper(
     // Get paginated public snippets
     const snippets = await SnippetModel.findAll({
       where: { is_public: true },
-      include: {
-        model: TagModel,
-        as: 'tags',
-        attributes: ['name'],
-        through: {
-          attributes: []
+      include: [
+        {
+          model: TagModel,
+          as: 'tags',
+          attributes: ['name'],
+          through: {
+            attributes: []
+          }
+        },
+        {
+          model: UserModel,
+          as: 'user',
+          attributes: ['id', 'email', 'user_name']
         }
-      },
+      ],
       limit,
       offset,
       order: [['createdAt', 'DESC']] // Order by newest first
