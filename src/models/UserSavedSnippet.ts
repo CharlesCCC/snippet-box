@@ -25,7 +25,8 @@ export const UserSavedSnippetModel = sequelize.define<UserSavedSnippetInstance>(
       references: {
         model: 'users',
         key: 'id'
-      }
+      },
+      field: 'user_id'
     },
     snippetId: {
       type: INTEGER,
@@ -33,16 +34,20 @@ export const UserSavedSnippetModel = sequelize.define<UserSavedSnippetInstance>(
       references: {
         model: 'snippets',
         key: 'id'
-      }
+      },
+      field: 'snippet_id'
     },
     createdAt: {
-      type: DATE
+      type: DATE,
+      field: 'created_at'
     },
     updatedAt: {
-      type: DATE
+      type: DATE,
+      field: 'updated_at'
     }
   },
   {
-    tableName: 'user_saved_snippets'
+    tableName: 'user_saved_snippets',
+    underscored: true
   }
 ); 

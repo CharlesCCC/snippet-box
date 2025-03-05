@@ -42,7 +42,8 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
     isPinned: {
       type: INTEGER,
       allowNull: true,
-      defaultValue: 0
+      defaultValue: 0,
+      field: 'is_pinned'
     },
     userId: {
       type: INTEGER,
@@ -50,13 +51,16 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
       references: {
         model: 'users',
         key: 'id'
-      }
+      },
+      field: 'user_id'
     },
     createdAt: {
-      type: DATE
+      type: DATE,
+      field: 'created_at'
     },
     updatedAt: {
-      type: DATE
+      type: DATE,
+      field: 'updated_at'
     },
     favorite: {
       type: DataTypes.BOOLEAN,
@@ -73,10 +77,11 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
     }
   },
   {
-    tableName: 'snippets'
+    tableName: 'snippets',
+    underscored: true
   }
 );
 
 // Set up relation between User and Snippet
-UserModel.hasMany(SnippetModel, { foreignKey: 'userId', as: 'snippets' });
-SnippetModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'user' });
+UserModel.hasMany(SnippetModel, { foreignKey: 'user_id', as: 'snippets' });
+SnippetModel.belongsTo(UserModel, { foreignKey: 'user_id', as: 'user' });

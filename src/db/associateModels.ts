@@ -16,26 +16,26 @@ export const associateModels = async () => {
   // User saved snippets associations
   UserModel.belongsToMany(SnippetModel, {
     through: UserSavedSnippetModel,
-    foreignKey: 'userId',
+    foreignKey: 'user_id',
     as: 'savedSnippets'
   });
 
   SnippetModel.belongsToMany(UserModel, {
     through: UserSavedSnippetModel,
-    foreignKey: 'snippetId',
+    foreignKey: 'snippet_id',
     as: 'savedByUsers'
   });
 
   // User liked snippets associations
   UserModel.belongsToMany(SnippetModel, {
     through: SnippetLikeModel,
-    foreignKey: 'userId',
+    foreignKey: 'user_id',
     as: 'likedSnippets'
   });
 
   SnippetModel.belongsToMany(UserModel, {
     through: SnippetLikeModel,
-    foreignKey: 'snippetId',
+    foreignKey: 'snippet_id',
     as: 'likedByUsers'
   });
 };

@@ -65,22 +65,27 @@ UserInstance.init(
     },
     resetPasswordToken: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      field: 'reset_password_token'
     },
     resetPasswordExpire: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
+      field: 'reset_password_expire'
     },
     createdAt: {
-      type: DataTypes.DATE
+      type: DataTypes.DATE,
+      field: 'created_at'
     },
     updatedAt: {
-      type: DataTypes.DATE
+      type: DataTypes.DATE,
+      field: 'updated_at'
     }
   },
   {
     tableName: 'users',
     sequelize,
+    underscored: true,
     hooks: {
       beforeSave: async (user: UserInstance) => {
         // Only hash password if it's modified or new

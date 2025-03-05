@@ -165,6 +165,20 @@ connection lang:javascript tags:database,mongodb
 
 If you encounter an error like `invalid input syntax for type integer: "false"` when creating or updating snippets, it's likely due to a type mismatch between the API request and the database schema.
 
+### Database Naming Conventions
+
+The application follows PostgreSQL naming conventions for database fields while maintaining JavaScript/TypeScript conventions in the codebase:
+
+- **Database Fields**: Use snake_case (e.g., `user_id`, `is_pinned`, `created_at`)
+- **JavaScript/TypeScript Properties**: Use camelCase (e.g., `userId`, `isPinned`, `createdAt`)
+
+This approach is implemented using Sequelize's `field` option to map between camelCase property names and snake_case database column names. Additionally, the `underscored: true` option is set on model definitions to automatically convert timestamps.
+
+Examples of this mapping:
+- JS Property `userId` → DB Column `user_id`
+- JS Property `isPinned` → DB Column `is_pinned`
+- JS Property `createdAt` → DB Column `created_at`
+
 ## Authentication
 
 Snippet Box now includes a comprehensive authentication system that allows users to:

@@ -25,7 +25,8 @@ export const SnippetLikeModel = sequelize.define<SnippetLikeInstance>(
       references: {
         model: 'users',
         key: 'id'
-      }
+      },
+      field: 'user_id'
     },
     snippetId: {
       type: INTEGER,
@@ -33,16 +34,20 @@ export const SnippetLikeModel = sequelize.define<SnippetLikeInstance>(
       references: {
         model: 'snippets',
         key: 'id'
-      }
+      },
+      field: 'snippet_id'
     },
     createdAt: {
-      type: DATE
+      type: DATE,
+      field: 'created_at'
     },
     updatedAt: {
-      type: DATE
+      type: DATE,
+      field: 'updated_at'
     }
   },
   {
-    tableName: 'snippet_likes'
+    tableName: 'snippet_likes',
+    underscored: true
   }
 ); 
