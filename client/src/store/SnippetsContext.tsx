@@ -88,7 +88,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
-    limit: 10,
+    limit: 9,
     totalPages: 0
   });
   const [currentSort, setCurrentSort] = useState('most_liked');
@@ -103,17 +103,13 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     try {
       const { data } = await axios.get(`/api/snippets?page=${page}&limit=${limit}&sort=${sort}`);
       
-      // If it's the first page, replace the snippets
-      // If it's a subsequent page, append the new snippets
-      if (page === 1) {
-        setSnippets(data.data);
-      } else {
-        setSnippets(prevSnippets => [...prevSnippets, ...data.data]);
-      }
+      // Always replace snippets with the current page data for traditional pagination
+      setSnippets(data.data);
       
       setPagination(data.pagination);
     } catch (error) {
       console.error('Error fetching snippets:', error);
+      return Promise.reject(error);
     }
   };
 
@@ -126,13 +122,8 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
         setCurrentSort(sort);
       }
       
-      // If it's the first page, replace the snippets
-      // If it's a subsequent page, append the new snippets
-      if (page === 1) {
-        setPublicSnippets(data.data);
-      } else {
-        setPublicSnippets(prevSnippets => [...prevSnippets, ...data.data]);
-      }
+      // Always replace snippets with the current page data for traditional pagination
+      setPublicSnippets(data.data);
       
       setPagination(data.pagination);
       return Promise.resolve();

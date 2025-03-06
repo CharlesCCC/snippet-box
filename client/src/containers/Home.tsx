@@ -28,8 +28,8 @@ export const Home = (): JSX.Element => {
   const prevPublicSnippetsRef = useRef<Snippet[]>([]);
 
   useEffect(() => {
-    getSnippets();
-    getPublicSnippets();
+    getSnippets(1, pagination.limit);
+    getPublicSnippets(1, pagination.limit);
     countPublicTags();
   }, []);
 
@@ -130,6 +130,16 @@ export const Home = (): JSX.Element => {
       });
   };
 
+  // Add back the handler for pagination of user's snippets
+  const handleSnippetPageChange = (page: number) => {
+    getSnippets(page, pagination.limit || 9);
+  };
+
+  // Update the handler for sorting user's snippets to use current pagination limit
+  const handleSnippetSortChange = (sort: string) => {
+    getSnippets(1, pagination.limit || 9, sort);
+  };
+
   return (
     <Layout>
       <div className='container py-5'>
@@ -199,8 +209,10 @@ export const Home = (): JSX.Element => {
                   <SnippetGrid 
                     snippets={filter ? localPublicSnippets : publicSnippets} 
                     onSortChange={handleSortChange}
+                    onPageChange={(page) => getPublicSnippets(page, pagination.limit)}
                     currentSort={currentSort}
                     showSortControls={true}
+                    pagination={pagination}
                   />
                 </div>
               </div>

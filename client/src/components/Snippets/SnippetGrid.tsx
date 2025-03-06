@@ -7,47 +7,80 @@ import { SnippetsContext } from '../../store';
 interface Props {
   snippets: Snippet[];
   onSortChange?: (sortOption: string) => void;
+  onPageChange?: (page: number) => void;
   currentSort?: string;
   showSortControls?: boolean;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export const SnippetGrid = (props: Props): JSX.Element => {
-  const { snippets, onSortChange, currentSort = 'most_recent', showSortControls = false } = props;
+  const { 
+    snippets, 
+    onSortChange, 
+    onPageChange, 
+    currentSort = 'most_recent', 
+    showSortControls = false,
+    pagination 
+  } = props;
   const { batchCheckLikes } = useContext(SnippetsContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedSnippets, setPaginatedSnippets] = useState<Snippet[]>([]);
   
-  // TODO: Make this dynamic based on the screen size or user preference
-  // Set items per page to 9 (3x3 grid)
-  const itemsPerPage = 9;
+  // Default to client-side pagination if no server pagination is provided
+  const useServerPagination = !!pagination && !!onPageChange;
+  
+  // If using client-side pagination, set items per page to 9 (3x3 grid)
+  // If using server pagination, use all snippets provided
+  const itemsPerPage = useServerPagination ? snippets.length : 9;
   
   // Calculate total pages
-  const totalPages = Math.ceil(snippets.length / itemsPerPage);
+  const totalPages = useServerPagination 
+    ? pagination?.totalPages || 1 
+    : Math.ceil(snippets.length / itemsPerPage);
   
-  // Update paginated snippets when snippets or current page changes
+  // Update paginated snippets when snippets change
   useEffect(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const visibleSnippets = snippets.slice(startIndex, endIndex);
-    setPaginatedSnippets(visibleSnippets);
-    
-    // Reset to page 1 if current page is out of bounds after snippets change
-    if (currentPage > Math.ceil(snippets.length / itemsPerPage) && snippets.length > 0) {
-      setCurrentPage(1);
+    if (!useServerPagination) {
+      // Client-side pagination
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const visibleSnippets = snippets.slice(startIndex, endIndex);
+      setPaginatedSnippets(visibleSnippets);
+      
+      // Reset to page 1 if current page is out of bounds after snippets change
+      if (currentPage > Math.ceil(snippets.length / itemsPerPage) && snippets.length > 0) {
+        setCurrentPage(1);
+      }
+    } else {
+      // Server-side pagination - use all provided snippets
+      setPaginatedSnippets(snippets);
+      // Update current page from pagination prop
+      if (pagination?.page && pagination.page !== currentPage) {
+        setCurrentPage(pagination.page);
+      }
     }
     
     // Batch fetch likes for visible snippets
-    if (visibleSnippets.length > 0) {
-      const snippetIds = visibleSnippets.map(snippet => snippet.id);
+    if (snippets.length > 0) {
+      const snippetIds = snippets.map(snippet => snippet.id);
       batchCheckLikes(snippetIds);
     }
-  }, [snippets, currentPage, batchCheckLikes]);
+  }, [snippets, currentPage, batchCheckLikes, useServerPagination, pagination, itemsPerPage]);
   
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Scroll to top of grid when page changes
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Call parent's onPageChange if provided
+    if (onPageChange) {
+      onPageChange(page);
+    }
   };
 
   // Handle sort change
@@ -97,7 +130,7 @@ export const SnippetGrid = (props: Props): JSX.Element => {
       {/* Only show pagination if we have more than one page */}
       {totalPages > 1 && (
         <Pagination 
-          currentPage={currentPage} 
+          currentPage={useServerPagination ? pagination?.page || 1 : currentPage} 
           totalPages={totalPages} 
           onPageChange={handlePageChange} 
         />

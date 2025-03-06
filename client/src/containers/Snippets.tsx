@@ -1,13 +1,20 @@
 import { useEffect, useContext, useState, Fragment } from 'react';
 import { SnippetsContext } from '../store';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
-import { Button, Card, EmptyState, Layout } from '../components/UI';
+import { Button, Card, EmptyState, Layout, PageHeader } from '../components/UI';
 import { Snippet } from '../typescript/interfaces';
 import { useHistory, useLocation } from 'react-router-dom';
 
 export const Snippets = (): JSX.Element => {
-  const { snippets, tagCount, getSnippets, countTags } =
-    useContext(SnippetsContext);
+  const { 
+    snippets, 
+    tagCount, 
+    getSnippets, 
+    countTags, 
+    pagination, 
+    currentSort,
+    batchCheckLikes 
+  } = useContext(SnippetsContext);
   const history = useHistory();
   const location = useLocation();
 
@@ -59,6 +66,16 @@ export const Snippets = (): JSX.Element => {
     setFilter(null);
     setLocalSnippets([...snippets]);
   };
+  
+  // Add handler for pagination
+  const handleSnippetPageChange = (page: number) => {
+    getSnippets(page, pagination.limit);
+  };
+
+  // Add handler for sorting
+  const handleSnippetSortChange = (sort: string) => {
+    getSnippets(1, pagination.limit, sort);
+  };
 
   return (
     <Layout>
@@ -66,47 +83,57 @@ export const Snippets = (): JSX.Element => {
         <EmptyState />
       ) : (
         <Fragment>
-          <div className='col-12 col-md-4 col-lg-3'>
-            <Card>
-              <h5 className='card-title'>All snippets</h5>
-              <div className='mb-3 d-flex justify-content-between'>
-                <span>Total</span>
-                <span>{snippets.length}</span>
-              </div>
-              <hr />
+          <PageHeader title='My Snippets' />
+          <div className='row'>
+            <div className='col-12 col-md-4 col-lg-3'>
+              <Card>
+                <h5 className='card-title'>All snippets</h5>
+                <div className='mb-3 d-flex justify-content-between'>
+                  <span>Total</span>
+                  <span>{pagination.total || snippets.length}</span>
+                </div>
+                <hr />
 
-              <h5 className='card-title'>Filter by tags</h5>
-              <Fragment>
-                {tagCount.map((tag, idx) => {
-                  const isActiveFilter = filter === tag.name;
+                <h5 className='card-title'>Filter by tags</h5>
+                <Fragment>
+                  {tagCount.map((tag, idx) => {
+                    const isActiveFilter = filter === tag.name;
 
-                  return (
-                    <div
-                      key={idx}
-                      className={`d-flex justify-content-between cursor-pointer ${
-                        isActiveFilter && 'text-success'
-                      }`}
-                      onClick={() => filterHandler(tag.name)}
-                    >
-                      <span>{tag.name}</span>
-                      <span>{tag.count}</span>
-                    </div>
-                  );
-                })}
-              </Fragment>
-              <div className='d-grid mt-3'>
-                <Button
-                  text='Clear filters'
-                  color='secondary'
-                  small
-                  outline
-                  handler={clearFilterHandler}
-                />
-              </div>
-            </Card>
-          </div>
-          <div className='col-12 col-md-8 col-lg-9'>
-            <SnippetGrid snippets={localSnippets} />
+                    return (
+                      <div
+                        key={idx}
+                        className={`d-flex justify-content-between cursor-pointer ${
+                          isActiveFilter && 'text-success'
+                        }`}
+                        onClick={() => filterHandler(tag.name)}
+                      >
+                        <span>{tag.name}</span>
+                        <span>{tag.count}</span>
+                      </div>
+                    );
+                  })}
+                </Fragment>
+                <div className='d-grid mt-3'>
+                  <Button
+                    text='Clear filters'
+                    color='secondary'
+                    small
+                    outline
+                    handler={clearFilterHandler}
+                  />
+                </div>
+              </Card>
+            </div>
+            <div className='col-12 col-md-8 col-lg-9'>
+              <SnippetGrid 
+                snippets={localSnippets}
+                onSortChange={handleSnippetSortChange}
+                onPageChange={handleSnippetPageChange}
+                currentSort={currentSort}
+                showSortControls={true}
+                pagination={pagination}
+              />
+            </div>
           </div>
         </Fragment>
       )}
