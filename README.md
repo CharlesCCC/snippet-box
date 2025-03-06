@@ -45,6 +45,16 @@ npm run init
 npm run dev
 ```
 
+### Data Loading Tools
+
+Snippet Box includes tools to load sample data into the database. These tools are located in the `data/data-load-tool` directory.
+
+Currently supported data loading tools:
+
+- **Prompt Loader**: Loads AI prompts from a CSV file into the database as snippets with appropriate tags.
+
+For more information, see the [Data Loader README](./data/data-load-tool/README.md).
+
 ## Installation
 
 ### With Docker
@@ -435,3 +445,70 @@ If you're having trouble with the likes functionality:
 #### Recent Fixes
 
 - Added the `optionalProtect` middleware to the `/api/likes/check/:id` route to allow both authenticated and unauthenticated users to check the like count. Authenticated users will see their personal like status, while unauthenticated users will only see the total like count.
+
+## Data Import Tools
+
+### CSV to PostgreSQL Import Tool
+
+The repository includes a data import tool that allows you to load prompts from a CSV file into the Snippet Box PostgreSQL database.
+
+#### Tool Location
+`data/data-load-tool/csv-to-postgres-python.py`
+
+#### CSV Format
+The CSV file should have the following columns:
+- `act`: The name/title of the prompt (used as the snippet title)
+- `prompt`: The text content of the prompt (used as both description and code content)
+- `for_devs`: A boolean flag indicating if the prompt is for developers (TRUE/FALSE)
+
+#### Database Schema
+The tool imports data into the following PostgreSQL tables:
+
+1. **snippets**: Main table for code snippets
+   - `id`: UUID (Primary Key)
+   - `title`: The prompt's act/title
+   - `description`: The prompt text
+   - `language`: Determined based on act name mapping
+   - `code`: The prompt text
+   - `docs`: Empty string
+   - `isPinned`: Set to false by default
+   - `favorite`: Set to false by default  
+   - `is_public`: Set to true by default
+   - `userId`: Always set to "1"
+   - `likes_count`: Random number between 1-100
+
+2. **tags**: Table for snippet tags
+   - `id`: UUID (Primary Key)
+   - `name`: Unique tag name
+
+3. **snippets_tags**: Junction table for snippet-tag relationship
+   - `snippet_id`: Foreign key to snippets table
+   - `tag_id`: Foreign key to tags table
+
+#### How To Use
+Run the script from the command line, providing the path to your CSV file:
+
+```sh
+python data/data-load-tool/csv-to-postgres-python.py data/data-load-tool/prompts.csv
+```
+
+The tool will:
+1. Create the necessary tables if they don't exist
+2. Read data from the CSV file
+3. Map each prompt's "act" to an appropriate programming language
+4. Create tags for each act type and dev status
+5. Import each prompt as a snippet with appropriate tags
+6. Show progress during the import process
+
+#### Language Mapping
+The tool maps the "act" field to programming languages using a predefined mapping. For example:
+- "Ethereum Developer" → solidity
+- "Linux Terminal" → bash
+- "JavaScript Developer" → javascript
+
+If no mapping exists for an act, it defaults to "plaintext".
+
+#### Tag Structure
+Each imported snippet will have two tags:
+1. The act name (e.g., "Ethereum Developer")
+2. A dev status tag ("dev-true" or "dev-false") based on the "for_devs" column

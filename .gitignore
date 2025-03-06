@@ -5,3 +5,4 @@ data/*
 .vscode
 .env
 src/config/.env
+.DS_Store
