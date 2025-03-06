@@ -40,9 +40,9 @@ export const SnippetModel = sequelize.define<SnippetInstance>(
       defaultValue: ''
     },
     isPinned: {
-      type: INTEGER,
+      type: DataTypes.BOOLEAN,
       allowNull: true,
-      defaultValue: 0,
+      defaultValue: false,
       field: 'is_pinned'
     },
     userId: {

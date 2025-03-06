@@ -18,7 +18,7 @@ export const createSnippet = asyncWrapper(
       ...req.body,
       favorite: req.body.favorite === 'true' || req.body.favorite === true,
       is_public: req.body.is_public === 'true' || req.body.is_public === true,
-      isPinned: req.body.isPinned === 'true' || req.body.isPinned === true ? 1 : 0,
+      isPinned: req.body.isPinned === 'true' || req.body.isPinned === true,
       userId: (req as any).user?.id
     };
 
@@ -211,8 +211,9 @@ export const updateSnippet = asyncWrapper(
     const userId = (req as any).user?.id;
     const snippetUserId = snippet.get('userId');
 
-    console.log('updateSnippet userId', userId);
-    console.log('updateSnippet snippetUserId', snippetUserId);
+    // console.log('updateSnippet userId', userId);
+    // console.log('updateSnippet snippetUserId', snippetUserId);
+    console.log('UpdateSnippet req.body', req.body);
 
     // If user is not the owner, deny access
     if (userId !== snippetUserId) {

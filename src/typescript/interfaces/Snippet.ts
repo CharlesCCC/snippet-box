@@ -7,7 +7,7 @@ export interface Snippet extends Model {
   language: string;
   code: string;
   docs: string;
-  isPinned: number;
+  isPinned: boolean;
   favorite: boolean;
   is_public: boolean;
   userId?: string;

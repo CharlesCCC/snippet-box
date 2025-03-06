@@ -1,5 +1,6 @@
 import { useEffect, useContext, Fragment, useState, useRef, useCallback } from 'react';
 import { SnippetsContext } from '../store';
+import { AuthContext } from '../store';
 import { Layout, PageHeader, EmptyState, Card, Button, ButtonGroup } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { SearchBar } from '../components/SearchBar';
@@ -19,6 +20,7 @@ export const Home = (): JSX.Element => {
     batchCheckLikes,
     currentSort
   } = useContext(SnippetsContext);
+  const { isAuthenticated } = useContext(AuthContext);
   const history = useHistory();
   const location = useLocation();
   const [filter, setFilter] = useState<string | null>(null);
@@ -183,7 +185,7 @@ export const Home = (): JSX.Element => {
               <SnippetGrid snippets={searchResults} />
             </div>
 
-            {snippets.some(s => s.isPinned) && (
+            {isAuthenticated && snippets.some(s => s.isPinned) && (
               <Fragment>
                 <PageHeader title='Pinned snippets' />
                 <div className='col-12 mt-3'>

@@ -57,9 +57,8 @@ module.exports = {
         allowNull: false
       },
       is_pinned: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 0
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
       },
       likes_count: {
         type: DataTypes.INTEGER,
