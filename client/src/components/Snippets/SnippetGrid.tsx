@@ -14,6 +14,7 @@ export const SnippetGrid = (props: Props): JSX.Element => {
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedSnippets, setPaginatedSnippets] = useState<Snippet[]>([]);
   
+  // TODO: Make this dynamic based on the screen size or user preference
   // Set items per page to 9 (3x3 grid)
   const itemsPerPage = 9;
   

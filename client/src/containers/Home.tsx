@@ -1,22 +1,23 @@
 import { useEffect, useContext, Fragment, useState, useRef, useCallback } from 'react';
 import { SnippetsContext } from '../store';
-import { Layout, PageHeader, EmptyState, Card, Button } from '../components/UI';
+import { Layout, PageHeader, EmptyState, Card, Button, ButtonGroup } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { SearchBar } from '../components/SearchBar';
 import { Snippet } from '../typescript/interfaces';
 import { useHistory, useLocation } from 'react-router-dom';
 
 export const Home = (): JSX.Element => {
-  const { 
-    snippets, 
-    publicSnippets, 
-    getSnippets, 
-    getPublicSnippets, 
-    searchResults, 
-    publicTagCount, 
-    pagination, 
+  const {
+    snippets,
+    publicSnippets,
+    getSnippets,
+    getPublicSnippets,
+    searchResults,
+    publicTagCount,
+    pagination,
     countPublicTags,
-    batchCheckLikes
+    batchCheckLikes,
+    currentSort
   } = useContext(SnippetsContext);
   const history = useHistory();
   const location = useLocation();
@@ -39,10 +40,10 @@ export const Home = (): JSX.Element => {
       // Check if there's a tag filter in URL
       const queryParams = new URLSearchParams(location.search);
       const tagParam = queryParams.get('tag');
-      
+
       if (tagParam && publicSnippets.length > 0) {
         setFilter(tagParam);
-        
+
         // Apply filter from URL
         const filteredSnippets = publicSnippets.filter(snippet => {
           if (Array.isArray(snippet.tags)) {
@@ -57,18 +58,18 @@ export const Home = (): JSX.Element => {
           }
           return false;
         });
-        
+
         setLocalPublicSnippets(filteredSnippets);
       } else {
         setLocalPublicSnippets([...publicSnippets]);
       }
-      
+
       prevPublicSnippetsRef.current = [...publicSnippets];
-      
+
       if (process.env.NODE_ENV === 'development') {
         console.log('Public snippets updated:', publicSnippets);
       }
-      
+
       if (publicSnippets.length > 0) {
         const firstPageSnippets = publicSnippets.slice(0, pagination.limit);
         const snippetIds = firstPageSnippets.map(snippet => snippet.id);
@@ -127,7 +128,7 @@ export const Home = (): JSX.Element => {
       pathname: location.pathname,
       search: queryParams.toString()
     });
-    
+
     setFilter(tag);
     // Check if tags is an array of strings or an array of objects with name property
     const filteredSnippets = publicSnippets.filter(snippet => {
@@ -154,97 +155,137 @@ export const Home = (): JSX.Element => {
       pathname: location.pathname,
       search: queryParams.toString()
     });
-    
+
     setFilter(null);
     setLocalPublicSnippets([...publicSnippets]);
   };
 
+  // Handle sorting change
+  const handleSortChange = (sortOption: string) => {
+    // Reset to page 1 when changing sort
+    setIsLoading(true);
+    getPublicSnippets(1, pagination.limit, sortOption)
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
   return (
     <Layout>
-      {snippets.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <Fragment>
-          <PageHeader title='Search' />
-          <SearchBar />
-          <div className='col-12 mb-4'>
-            <SnippetGrid snippets={searchResults} />
-          </div>
+      <div className='container py-5'>
+        {snippets.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <Fragment>
+            <PageHeader title='Search' />
+            <SearchBar />
+            <div className='col-12 mb-4'>
+              <SnippetGrid snippets={searchResults} />
+            </div>
 
-          {snippets.some(s => s.isPinned) && (
+            {snippets.some(s => s.isPinned) && (
+              <Fragment>
+                <PageHeader title='Pinned snippets' />
+                <div className='col-12 mt-3'>
+                  <SnippetGrid snippets={snippets.filter(s => s.isPinned)} />
+                </div>
+              </Fragment>
+            )}
+
             <Fragment>
-              <PageHeader title='Pinned snippets' />
-              <div className='col-12 mt-3'>
-                <SnippetGrid snippets={snippets.filter(s => s.isPinned)} />
+              <div className='row mb-4'>
+                <div className='col-md-6'>
+                  <PageHeader
+                    title='Public Snippets'
+                    subtitle={`${pagination.total} Public Snippets and ${publicTagCount.length} Tags`}
+                  />
+                </div>
+                <div className='col-md-6 d-flex justify-content-end align-items-center'>
+                  <div className='d-flex gap-2 align-items-center'>
+                    <span className='me-2'>Sort by:</span>
+                    <ButtonGroup>
+                      <Button
+                        size='sm'
+                        variant={currentSort === 'most_liked' ? 'primary' : 'outline-secondary'}
+                        onClick={() => handleSortChange('most_liked')}
+                      >
+                        Most Liked
+                      </Button>
+                      <Button
+                        size='sm'
+                        variant={currentSort === 'most_recent' ? 'primary' : 'outline-secondary'}
+                        onClick={() => handleSortChange('most_recent')}
+                      >
+                        Most Recent
+                      </Button>
+                    </ButtonGroup>
+                  </div>
+                </div>
+              </div>
+              <PageHeader title='' />
+              <div className='row'>
+                <div className='col-12 col-md-4 col-lg-3'>
+                  <Card>
+                    <h5 className='card-title'>All snippets</h5>
+                    <div className='mb-3 d-flex justify-content-between'>
+                      <span>Total</span>
+                      <span>{pagination.total}</span>
+                    </div>
+                    <hr />
+
+                    <h5 className='card-title'>Filter by tags</h5>
+                    <Fragment>
+                      {publicTagCount.map((tag, idx) => {
+                        const isActiveFilter = filter === tag.name;
+                        return (
+                          <div
+                            key={idx}
+                            className={`d-flex justify-content-between cursor-pointer ${isActiveFilter && 'text-success'
+                              }`}
+                            onClick={() => filterHandler(tag.name)}
+                          >
+                            <span>{tag.name}</span>
+                            <span>{tag.count}</span>
+                          </div>
+                        );
+                      })}
+                    </Fragment>
+                    <div className='d-grid mt-3'>
+                      <Button
+                        text='Clear filters'
+                        color='secondary'
+                        small
+                        outline
+                        handler={clearFilterHandler}
+                      />
+                    </div>
+                  </Card>
+                </div>
+                <div className='col-12 col-md-8 col-lg-9'>
+                  <SnippetGrid snippets={localPublicSnippets} />
+                  {pagination.page < pagination.totalPages && (
+                    <div className='d-grid mt-4' ref={loadMoreRef}>
+                      {isLoading ? (
+                        <div className="text-center">
+                          <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                        </div>
+                      ) : pagination.total < 9 ? (
+                        <Button
+                          text='Load more'
+                          color='primary'
+                          handler={loadMoreHandler}
+                        />
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
             </Fragment>
-          )}
-
-          <Fragment>
-            <PageHeader title='Public snippets' />
-            <div className='row'>
-              <div className='col-12 col-md-4 col-lg-3'>
-                <Card>
-                  <h5 className='card-title'>All snippets</h5>
-                  <div className='mb-3 d-flex justify-content-between'>
-                    <span>Total</span>
-                    <span>{pagination.total}</span>
-                  </div>
-                  <hr />
-
-                  <h5 className='card-title'>Filter by tags</h5>
-                  <Fragment>
-                    {publicTagCount.map((tag, idx) => {
-                      const isActiveFilter = filter === tag.name;
-                      return (
-                        <div
-                          key={idx}
-                          className={`d-flex justify-content-between cursor-pointer ${
-                            isActiveFilter && 'text-success'
-                          }`}
-                          onClick={() => filterHandler(tag.name)}
-                        >
-                          <span>{tag.name}</span>
-                          <span>{tag.count}</span>
-                        </div>
-                      );
-                    })}
-                  </Fragment>
-                  <div className='d-grid mt-3'>
-                    <Button
-                      text='Clear filters'
-                      color='secondary'
-                      small
-                      outline
-                      handler={clearFilterHandler}
-                    />
-                  </div>
-                </Card>
-              </div>
-              <div className='col-12 col-md-8 col-lg-9'>
-                <SnippetGrid snippets={localPublicSnippets} />
-                {pagination.page < pagination.totalPages && (
-                  <div className='d-grid mt-4' ref={loadMoreRef}>
-                    {isLoading ? (
-                      <div className="text-center">
-                        <div className="spinner-border text-primary" role="status">
-                          <span className="visually-hidden">Loading...</span>
-                        </div>
-                      </div>
-                    ) : pagination.total < 9 ? (
-                      <Button
-                        text='Load more'
-                        color='primary'
-                        handler={loadMoreHandler}
-                      />
-                    ) : null}
-                  </div>
-                )}
-              </div>
-            </div>
           </Fragment>
-        </Fragment>
-      )}
+        )}
+      </div>
     </Layout>
   );
 };

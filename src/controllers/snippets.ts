@@ -585,6 +585,21 @@ export const getAllSnippetsForPublic = asyncWrapper(
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = (page - 1) * limit;
+    
+    // Get sort parameter from query string (default: most_liked)
+    const sort = (req.query.sort as string) || 'most_liked';
+    
+    // Define order based on sort parameter
+    let order: any;
+    switch (sort) {
+      case 'most_recent':
+        order = [['updatedAt', 'DESC']];
+        break;
+      case 'most_liked':
+      default:
+        order = [['likes_count', 'DESC'], ['updatedAt', 'DESC']]; // Secondary sort by updated_at if likes are equal
+        break;
+    }
 
     // Get total count of public snippets
     const total = await SnippetModel.count({
@@ -611,7 +626,7 @@ export const getAllSnippetsForPublic = asyncWrapper(
       ],
       limit,
       offset,
-      order: [['createdAt', 'DESC']] // Order by newest first
+      order // Use dynamic ordering based on sort parameter
     });
 
     const populatedSnippets = snippets.map(snippet => {
@@ -629,7 +644,8 @@ export const getAllSnippetsForPublic = asyncWrapper(
         page,
         limit,
         totalPages: Math.ceil(total / limit)
-      }
+      },
+      sort // Include the sort parameter in the response
     });
   }
 );

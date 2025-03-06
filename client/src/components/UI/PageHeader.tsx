@@ -2,12 +2,13 @@ import { Link, useLocation, useHistory } from 'react-router-dom';
 
 interface Props<T> {
   title: string;
+  subtitle?: string;
   prevDest?: string;
   prevState?: T;
 }
 
 export const PageHeader = <T,>(props: Props<T>): JSX.Element => {
-  const { title, prevDest, prevState } = props;
+  const { title, subtitle, prevDest, prevState } = props;
   const location = useLocation();
   const history = useHistory();
 
@@ -28,6 +29,7 @@ export const PageHeader = <T,>(props: Props<T>): JSX.Element => {
   return (
     <div className='col-12'>
       <h4>{title}</h4>
+      {subtitle && <p className="text-muted">{subtitle}</p>}
       {prevDest && (
         <h6>
           <span

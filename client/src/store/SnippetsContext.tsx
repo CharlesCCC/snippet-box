@@ -44,8 +44,9 @@ export interface SnippetsContextType {
     limit: number;
     totalPages: number;
   };
+  currentSort: string;
   getSnippets: () => Promise<void>;
-  getPublicSnippets: (page?: number, limit?: number) => Promise<void>;
+  getPublicSnippets: (page?: number, limit?: number, sort?: string) => Promise<void>;
   getSnippetById: (id: string) => void;
   setSnippet: (id: string) => void;
   createSnippet: (snippet: NewSnippet) => void;
@@ -90,6 +91,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     limit: 10,
     totalPages: 0
   });
+  const [currentSort, setCurrentSort] = useState('most_liked');
 
   const history = useHistory();
 
@@ -106,9 +108,14 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     }
   };
 
-  const getPublicSnippets = async (page: number = 1, limit: number = 10): Promise<void> => {
+  const getPublicSnippets = async (page: number = 1, limit: number = 10, sort: string = currentSort): Promise<void> => {
     try {
-      const { data } = await axios.get(`/api/snippets/public?page=${page}&limit=${limit}`);
+      const { data } = await axios.get(`/api/snippets/public?page=${page}&limit=${limit}&sort=${sort}`);
+      
+      // Update the current sort if it's different
+      if (sort !== currentSort) {
+        setCurrentSort(sort);
+      }
       
       // If it's the first page, replace the snippets
       // If it's a subsequent page, append the new snippets
@@ -419,6 +426,7 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     publicTagCount,
     savedSnippets,
     pagination,
+    currentSort,
     getSnippets,
     getPublicSnippets,
     getSnippetById,
