@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { Snippet } from '../../typescript/interfaces';
 import { SnippetCard } from './SnippetCard';
 import { Pagination, Button, ButtonGroup } from '../UI';
@@ -27,9 +27,10 @@ export const SnippetGrid = (props: Props): JSX.Element => {
     showSortControls = false,
     pagination 
   } = props;
-  const { batchCheckLikes } = useContext(SnippetsContext);
+  const { batchCheckLikes, likedSnippetsCache } = useContext(SnippetsContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedSnippets, setPaginatedSnippets] = useState<Snippet[]>([]);
+  const checkedSnippetsRef = useRef<Set<string>>(new Set());
   
   // Default to client-side pagination if no server pagination is provided
   const useServerPagination = !!pagination && !!onPageChange;
@@ -64,13 +65,28 @@ export const SnippetGrid = (props: Props): JSX.Element => {
         setCurrentPage(pagination.page);
       }
     }
-    
-    // Batch fetch likes for visible snippets
+  }, [snippets, currentPage, useServerPagination, pagination, itemsPerPage]);
+
+  // Separate effect for batch checking likes
+  useEffect(() => {
+    // Only batch check if we have snippets and they're not already in cache or checked
     if (snippets.length > 0) {
-      const snippetIds = snippets.map(snippet => snippet.id);
-      batchCheckLikes(snippetIds);
+      const uncachedSnippetIds = snippets
+        .map(snippet => snippet.id)
+        .filter(id => !likedSnippetsCache.has(id) && !checkedSnippetsRef.current.has(id));
+
+      if (uncachedSnippetIds.length > 0) {
+        // Add to checked set before making the request
+        uncachedSnippetIds.forEach(id => checkedSnippetsRef.current.add(id));
+        batchCheckLikes(uncachedSnippetIds);
+      }
     }
-  }, [snippets, currentPage, batchCheckLikes, useServerPagination, pagination, itemsPerPage]);
+
+    // Reset checked snippets when component unmounts
+    return () => {
+      checkedSnippetsRef.current.clear();
+    };
+  }, [snippets]);
   
   // Handle page change
   const handlePageChange = (page: number) => {

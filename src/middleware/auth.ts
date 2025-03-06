@@ -32,13 +32,29 @@ export const protect = asyncWrapper(
       console.log("Auth middleware - Request path:", req.path);
       console.log("Auth middleware - Request method:", req.method);
       console.log("Token:", token ? "Present" : "Not present");
+      console.log("Request URL:", req.originalUrl);
+      console.log("Query params:", req.query);
     }
 
     // If no token is present
     if (!token) {
-      // Allow public access to root path
-      if (req.path === "/") {
-        console.log("Auth middleware - Allowing access to root path");
+      // For API requests, always require authentication
+      if (req.originalUrl.startsWith("/api/")) {
+        console.log("Auth middleware - API request without token, returning 401");
+        return next(
+          new ErrorResponse(401, "Authentication required to access this resource")
+        );
+      }
+
+      // For non-API requests, check public routes
+      if (req.path === "/" || req.path === "/login" || req.path === "/register") {
+        console.log("Auth middleware - Public route accessed:", req.path);
+        return next();
+      }
+
+      // Allow access to public snippets listing endpoint
+      if (req.path.startsWith('/api/snippets/public')) {
+        console.log("Auth middleware - Allowing access to public snippets listing");
         return next();
       }
 
@@ -48,10 +64,7 @@ export const protect = asyncWrapper(
       );
       if (snippetIdMatch && req.method === "GET") {
         const snippetId = snippetIdMatch[1];
-        console.log(
-          "Auth middleware - Checking if snippet is public:",
-          snippetId
-        );
+        console.log("Auth middleware - Checking if snippet is public:", snippetId);
         // Check if the snippet is public
         const snippet = await SnippetModel.findByPk(snippetId);
         if (snippet && snippet.get("is_public")) {
@@ -61,20 +74,6 @@ export const protect = asyncWrapper(
         }
       }
 
-      // For API requests, return a JSON error instead of redirecting
-      if (req.originalUrl.startsWith("/api/")) {
-        console.log(
-          "Auth middleware - API request without token, returning 401"
-        );
-        return next(
-          new ErrorResponse(
-            401,
-            "Authentication required to access this resource"
-          )
-        );
-      }
-
-      console.log("Auth middleware - Redirecting to login");
       // Redirect to login for other paths
       return res.redirect("/login");
     }
@@ -87,17 +86,17 @@ export const protect = asyncWrapper(
         process.env.JWT_SECRET || "snippetboxsecret"
       ) as DecodedToken;
 
-      console.log("Auth middleware - Token decoded, user ID:", decoded.id);
+      // console.log("Auth middleware - Token decoded, user ID:", decoded.id);
       const user = await UserModel.findByPk(decoded.id);
 
       if (!user) {
-        console.log("Auth middleware - User not found");
+        // console.log("Auth middleware - User not found");
         return next(
           new ErrorResponse(404, "User belonging to this token does not exist")
         );
       }
 
-      console.log("Auth middleware - User authenticated:", user.get("id"));
+      // console.log("Auth middleware - User authenticated:", user.get("id"));
       // Add proper typing for user
       (req as any).user = user.get({ plain: true });
       return next();
@@ -125,7 +124,7 @@ export const optionalProtect = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     let token;
 
-    console.log("Optional Auth middleware - Request path:", req.path);
+    // console.debug("Optional Auth middleware - Request path:", req.path);
 
     // Check both authorization header AND cookies
     const cookies = req.headers.cookie
@@ -138,7 +137,7 @@ export const optionalProtect = asyncWrapper(
 
     token = cookies?.token || req.headers.authorization?.split(" ")[1];
 
-    console.log("Token:", token ? "Present" : "Not present");
+    // console.debug("Token:", token ? "Present" : "Not present");
 
     // If token exists, verify it and attach user to request
     if (token) {

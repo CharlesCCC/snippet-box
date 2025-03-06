@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, memo } from 'react';
 import { SnippetsContext } from '../../store';
 import Icon from '@mdi/react';
 import { mdiHeart, mdiHeartOutline } from '@mdi/js';
@@ -8,60 +8,38 @@ interface Props {
   likes_count: number;
 }
 
-export const SnippetLike = (props: Props): JSX.Element => {
-  const { likeSnippet, unlikeSnippet, checkIfLiked, likedSnippetsCache } = useContext(SnippetsContext);
+export const SnippetLike = memo((props: Props): JSX.Element => {
+  const { likeSnippet, unlikeSnippet, likedSnippetsCache } = useContext(SnippetsContext);
   const { id, likes_count } = props;
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likesCount, setLikesCount] = useState<number>(likes_count || 0);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const checkLikedStatus = async () => {
-      // Check if we already have the like status in the cache
-      if (likedSnippetsCache.has(id)) {
-        const cachedData = likedSnippetsCache.get(id)!;
-        if (isMounted) {
-          setIsLiked(cachedData.liked);
-          setLikesCount(cachedData.likes_count);
-        }
-        return;
-      }
-      
-      // If not in cache, fetch it
-      const result = await checkIfLiked(id);
-      if (isMounted) {
-        setIsLiked(result.liked);
-        setLikesCount(result.likes_count);
-      }
-    };
-
-    checkLikedStatus();
-    
-    // Cleanup function to prevent state updates after unmounting
-    return () => {
-      isMounted = false;
-    };
-  }, [id, checkIfLiked, likedSnippetsCache]);
-
-  // Update when the cache changes
-  useEffect(() => {
+    // Only update state if the cache value is different from current state
     if (likedSnippetsCache.has(id)) {
       const cachedData = likedSnippetsCache.get(id)!;
-      setIsLiked(cachedData.liked);
-      setLikesCount(cachedData.likes_count);
+      if (cachedData.liked !== isLiked) {
+        setIsLiked(cachedData.liked);
+      }
+      if (cachedData.likes_count !== likesCount) {
+        setLikesCount(cachedData.likes_count);
+      }
     }
-  }, [likedSnippetsCache, id]);
+  }, [id, likedSnippetsCache, isLiked, likesCount]);
 
   const handleToggleLike = async () => {
-    if (isLiked) {
-      await unlikeSnippet(id);
-      setIsLiked(false);
-      setLikesCount(prev => Math.max(0, prev - 1));
-    } else {
-      await likeSnippet(id);
-      setIsLiked(true);
-      setLikesCount(prev => prev + 1);
+    try {
+      if (isLiked) {
+        await unlikeSnippet(id);
+        setIsLiked(false);
+        setLikesCount(prev => Math.max(0, prev - 1));
+      } else {
+        await likeSnippet(id);
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
     }
   };
 
@@ -77,4 +55,4 @@ export const SnippetLike = (props: Props): JSX.Element => {
       <small className="text-muted">{likesCount}</small>
     </div>
   );
-}; 
+}); 

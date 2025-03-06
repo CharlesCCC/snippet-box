@@ -146,11 +146,7 @@ export const checkLiked = asyncWrapper(
     const userId = (req as any).user?.id;
     const snippetId = req.params.id;
 
-    if (!userId) {
-      return;
-    }
-    
-    // Check if snippet exists
+    // Check if snippet exists first
     const snippet = await SnippetModel.findByPk(snippetId);
     if (!snippet) {
       return next(
@@ -164,21 +160,30 @@ export const checkLiked = asyncWrapper(
       }`
     );
 
-    // Check if liked - only if user is authenticated
-    let liked = false;
+    // If no user is authenticated, return not liked but include likes count
+    if (!userId) {
+      res.status(200).json({
+        success: true,
+        data: {
+          liked: false,
+          likes_count: snippet.likes_count
+        }
+      });
+      return;
+    }
 
+    // Check if liked - only if user is authenticated
     const existingLike = await SnippetLikeModel.findOne({
       where: {
         userId,
         snippetId,
       },
     });
-    liked = !!existingLike;
 
     res.status(200).json({
       success: true,
       data: {
-        liked,
+        liked: !!existingLike,
         likes_count: snippet.likes_count,
       },
     });

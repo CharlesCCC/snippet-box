@@ -1,4 +1,4 @@
-import { useState, createContext, useEffect } from 'react';
+import { useState, createContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -17,7 +17,6 @@ axios.interceptors.request.use(
       .find(cookie => cookie.trim().startsWith('token='));
     
     // console.log('Interceptor token:', token);
-    
     if (token) {
       const tokenValue = token.split('=')[1];
       config.headers.Authorization = `Bearer ${tokenValue}`;

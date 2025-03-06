@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
   // Load user from token
   const loadUser = async () => {
     try {
+      console.log('Loading user ---------------------------------- ');
       const res = await axios.get<Response<User>>('/api/auth/me');
       
       setAuthState(prevState => ({
