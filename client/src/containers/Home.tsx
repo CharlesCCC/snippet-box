@@ -1,7 +1,7 @@
-import { useEffect, useContext, Fragment, useState, useRef, useCallback } from 'react';
+import { useEffect, useContext, Fragment, useState, useRef } from 'react';
 import { SnippetsContext } from '../store';
 import { AuthContext } from '../store';
-import { Layout, PageHeader, EmptyState, Card, Button, ButtonGroup } from '../components/UI';
+import { Layout, PageHeader, EmptyState, Card, Button } from '../components/UI';
 import { SnippetGrid } from '../components/Snippets/SnippetGrid';
 import { SearchBar } from '../components/SearchBar';
 import { Snippet } from '../typescript/interfaces';
@@ -25,9 +25,6 @@ export const Home = (): JSX.Element => {
   const location = useLocation();
   const [filter, setFilter] = useState<string | null>(null);
   const [localPublicSnippets, setLocalPublicSnippets] = useState<Snippet[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const prevPublicSnippetsRef = useRef<Snippet[]>([]);
 
   useEffect(() => {
@@ -84,44 +81,6 @@ export const Home = (): JSX.Element => {
     console.log('Public tag count updated:', publicTagCount);
   }, [publicTagCount]);
 
-  // Setup IntersectionObserver to automatically load more data
-  const loadMoreHandler = useCallback(() => {
-    if (pagination.page < pagination.totalPages && !isLoading) {
-      setIsLoading(true);
-      getPublicSnippets(pagination.page + 1).finally(() => {
-        setIsLoading(false);
-      });
-    }
-  }, [pagination.page, pagination.totalPages, isLoading, getPublicSnippets]);
-
-  useEffect(() => {
-    // Create IntersectionObserver to detect when user scrolls near the bottom
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting && pagination.total >= 9) {
-          loadMoreHandler();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    // Observe the load more element
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [loadMoreHandler, pagination.total]);
-
   const filterHandler = (tag: string) => {
     // Update URL query parameter
     const queryParams = new URLSearchParams(location.search);
@@ -165,10 +124,9 @@ export const Home = (): JSX.Element => {
   // Handle sorting change
   const handleSortChange = (sortOption: string) => {
     // Reset to page 1 when changing sort
-    setIsLoading(true);
     getPublicSnippets(1, pagination.limit, sortOption)
       .finally(() => {
-        setIsLoading(false);
+        console.log('Sort changed');
       });
   };
 
@@ -195,38 +153,12 @@ export const Home = (): JSX.Element => {
             )}
 
             <Fragment>
-              <div className='row mb-4'>
-                <div className='col-md-6'>
+              <div className='row'>
+                  <div className='col-12 col-md-4 col-lg-3'>
                   <PageHeader
-                    title='Public Snippets'
+                    title=''
                     subtitle={`${pagination.total} Public Snippets and ${publicTagCount.length} Tags`}
                   />
-                </div>
-                <div className='col-md-6 d-flex justify-content-end align-items-center'>
-                  <div className='d-flex gap-2 align-items-center'>
-                    <span className='me-2'>Sort by:</span>
-                    <ButtonGroup>
-                      <Button
-                        size='sm'
-                        variant={currentSort === 'most_liked' ? 'primary' : 'outline-secondary'}
-                        onClick={() => handleSortChange('most_liked')}
-                      >
-                        Most Liked
-                      </Button>
-                      <Button
-                        size='sm'
-                        variant={currentSort === 'most_recent' ? 'primary' : 'outline-secondary'}
-                        onClick={() => handleSortChange('most_recent')}
-                      >
-                        Most Recent
-                      </Button>
-                    </ButtonGroup>
-                  </div>
-                </div>
-              </div>
-              <PageHeader title='' />
-              <div className='row'>
-                <div className='col-12 col-md-4 col-lg-3'>
                   <Card>
                     <h5 className='card-title'>All snippets</h5>
                     <div className='mb-3 d-flex justify-content-between'>
@@ -264,24 +196,12 @@ export const Home = (): JSX.Element => {
                   </Card>
                 </div>
                 <div className='col-12 col-md-8 col-lg-9'>
-                  <SnippetGrid snippets={localPublicSnippets} />
-                  {pagination.page < pagination.totalPages && (
-                    <div className='d-grid mt-4' ref={loadMoreRef}>
-                      {isLoading ? (
-                        <div className="text-center">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                          </div>
-                        </div>
-                      ) : pagination.total < 9 ? (
-                        <Button
-                          text='Load more'
-                          color='primary'
-                          handler={loadMoreHandler}
-                        />
-                      ) : null}
-                    </div>
-                  )}
+                  <SnippetGrid 
+                    snippets={filter ? localPublicSnippets : publicSnippets} 
+                    onSortChange={handleSortChange}
+                    currentSort={currentSort}
+                    showSortControls={true}
+                  />
                 </div>
               </div>
             </Fragment>

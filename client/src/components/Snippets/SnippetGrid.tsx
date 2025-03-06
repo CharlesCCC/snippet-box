@@ -1,15 +1,18 @@
 import { useState, useEffect, useContext } from 'react';
 import { Snippet } from '../../typescript/interfaces';
 import { SnippetCard } from './SnippetCard';
-import { Pagination } from '../UI';
+import { Pagination, Button, ButtonGroup } from '../UI';
 import { SnippetsContext } from '../../store';
 
 interface Props {
   snippets: Snippet[];
+  onSortChange?: (sortOption: string) => void;
+  currentSort?: string;
+  showSortControls?: boolean;
 }
 
 export const SnippetGrid = (props: Props): JSX.Element => {
-  const { snippets } = props;
+  const { snippets, onSortChange, currentSort = 'most_recent', showSortControls = false } = props;
   const { batchCheckLikes } = useContext(SnippetsContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedSnippets, setPaginatedSnippets] = useState<Snippet[]>([]);
@@ -47,8 +50,42 @@ export const SnippetGrid = (props: Props): JSX.Element => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Handle sort change
+  const handleSortChange = (sortOption: string) => {
+    if (onSortChange) {
+      onSortChange(sortOption);
+      // Reset to page 1 when changing sort
+      setCurrentPage(1);
+    }
+  };
+
   return (
     <>
+      {/* Sort controls */}
+      {showSortControls && (
+        <div className='d-flex justify-content-end align-items-center mb-3'>
+          <div className='d-flex gap-2 align-items-center'>
+            <span className='me-2'>Sort by:</span>
+            <ButtonGroup>
+              <Button
+                size='sm'
+                variant={currentSort === 'most_liked' ? 'primary' : 'outline-secondary'}
+                onClick={() => handleSortChange('most_liked')}
+              >
+                Most Liked
+              </Button>
+              <Button
+                size='sm'
+                variant={currentSort === 'most_recent' ? 'primary' : 'outline-secondary'}
+                onClick={() => handleSortChange('most_recent')}
+              >
+                Most Recent
+              </Button>
+            </ButtonGroup>
+          </div>
+        </div>
+      )}
+
       <div className='row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4'>
         {paginatedSnippets.map(snippet => (
           <div className='col' key={snippet.id}>
