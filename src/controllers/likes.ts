@@ -184,3 +184,77 @@ export const checkLiked = asyncWrapper(
     });
   }
 );
+
+/**
+ * @description Batch check if user has liked multiple snippets
+ * @route /api/likes/check-batch
+ * @request POST
+ */
+export const batchCheckLiked = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = (req as any).user?.id;
+    const { ids } = req.body;
+    
+    if (!Array.isArray(ids)) {
+      return next(new ErrorResponse(400, 'IDs must be provided as an array'));
+    }
+    
+    // Limit the number of IDs to prevent abuse
+    const snippetIds = ids.slice(0, 100);
+    
+    console.debug(
+      `Batch checking ${snippetIds.length} snippets for likes by user ${
+        userId || "unauthenticated"
+      }`
+    );
+    
+    // Create result object
+    const results: Record<string, { liked: boolean; likes_count: number }> = {};
+    
+    // Get likes count for all snippets in batch
+    const likesCounts = await SnippetLikeModel.findAll({
+      attributes: [
+        'snippetId',
+        [SnippetLikeModel.sequelize!.fn('COUNT', 'snippet_id'), 'count']
+      ],
+      where: {
+        snippetId: snippetIds
+      },
+      group: ['snippetId']
+    });
+    
+    // Initialize all results with liked = false and likes_count = 0
+    snippetIds.forEach(id => {
+      results[id] = { liked: false, likes_count: 0 };
+    });
+    
+    // Update likes count for found snippets
+    likesCounts.forEach((likeCount: any) => {
+      const id = likeCount.get('snippetId');
+      results[id].likes_count = parseInt(likeCount.get('count'), 10);
+    });
+    
+    // If authenticated, check which snippets are liked by the user
+    if (userId) {
+      const userLikes = await SnippetLikeModel.findAll({
+        where: {
+          userId: userId,
+          snippetId: snippetIds
+        }
+      });
+      
+      // Mark liked snippets
+      userLikes.forEach((like: any) => {
+        const id = like.snippetId;
+        if (results[id]) {
+          results[id].liked = true;
+        }
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: results
+    });
+  }
+);

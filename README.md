@@ -420,12 +420,14 @@ Snippet Box includes a like system that allows users to like snippets and see ho
 | `/api/likes/:id` | POST | Like a snippet | Yes |
 | `/api/likes/:id` | DELETE | Unlike a snippet | Yes |
 | `/api/likes/check/:id` | GET | Check if user has liked a snippet | Optional |
+| `/api/likes/check-batch` | POST | Batch check like status for multiple snippets | Optional |
 
 #### How Likes Work
 
 1. **Liking a Snippet**: Authenticated users can like a snippet by sending a POST request to `/api/likes/:id`. This increments the snippet's like count and records the user's like.
 2. **Unliking a Snippet**: Users can remove their like by sending a DELETE request to `/api/likes/:id`. This decrements the snippet's like count and removes the user's like record.
 3. **Checking Like Status**: The `/api/likes/check/:id` endpoint returns whether the current user has liked a snippet and the total number of likes.
+4. **Batch Checking**: For better performance, the `/api/likes/check-batch` endpoint allows checking like status for multiple snippets in a single request. Send a POST request with an array of snippet IDs in the request body.
 
 #### Authentication for Likes
 
@@ -512,3 +514,15 @@ If no mapping exists for an act, it defaults to "plaintext".
 Each imported snippet will have two tags:
 1. The act name (e.g., "Ethereum Developer")
 2. A dev status tag ("dev-true" or "dev-false") based on the "for_devs" column
+
+## Performance Optimizations
+
+To ensure optimal performance, especially for users who haven't logged in yet, the application implements several optimizations:
+
+1. **Server-side filtering**: Tag filtering is performed on the server to reduce data transfer and client-side processing.
+2. **Response caching**: Public snippet responses are cached in the browser's session storage to reduce redundant API calls.
+3. **Batch requests**: Multiple like status checks are consolidated into a single API request using the batch endpoint.
+4. **Conditional processing**: Like checking is only performed for authenticated users, reducing unnecessary API calls.
+5. **Efficient data loading**: Pagination is implemented with infinite scrolling to load data incrementally as needed.
+
+These optimizations significantly improve the application's performance, particularly for browsing public snippets.
