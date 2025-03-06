@@ -118,7 +118,7 @@ export const getAllSnippets = asyncWrapper(
  */
 export const getSnippet = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    console.log('getSnippet controller - Snippet ID:', req.params.id);
+    console.log(`getSnippet API call - ID: ${req.params.id} - Timestamp: ${new Date().toISOString()}`);
     console.log('getSnippet controller - User:', (req as any).user);
     
     const snippet = await SnippetModel.findOne({

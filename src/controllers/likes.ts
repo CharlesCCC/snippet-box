@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { asyncWrapper } from '../middleware';
-import { SnippetLikeModel, SnippetModel } from '../models';
-import { ErrorResponse } from '../utils';
-import { sequelize } from '../db';
+import { Request, Response, NextFunction } from "express";
+import { asyncWrapper } from "../middleware";
+import { SnippetLikeModel, SnippetModel } from "../models";
+import { ErrorResponse } from "../utils";
+import { sequelize } from "../db";
 
 /**
  * @description Like a snippet
@@ -17,19 +17,23 @@ export const likeSnippet = asyncWrapper(
     // Check if snippet exists
     const snippet = await SnippetModel.findByPk(snippetId);
     if (!snippet) {
-      return next(new ErrorResponse(404, `Snippet with id ${snippetId} not found`));
+      return next(
+        new ErrorResponse(404, `Snippet with id ${snippetId} not found`)
+      );
     }
 
     // Check if already liked
     const existingLike = await SnippetLikeModel.findOne({
       where: {
         userId,
-        snippetId
-      }
+        snippetId,
+      },
     });
 
     if (existingLike) {
-      return next(new ErrorResponse(400, 'You have already liked this snippet'));
+      return next(
+        new ErrorResponse(400, "You have already liked this snippet")
+      );
     }
 
     // Use a transaction to ensure data consistency
@@ -40,13 +44,13 @@ export const likeSnippet = asyncWrapper(
       await SnippetLikeModel.create(
         {
           userId,
-          snippetId
+          snippetId,
         },
         { transaction }
       );
 
       // Increment the likes_count on the snippet
-      await snippet.increment('likes_count', { transaction });
+      await snippet.increment("likes_count", { transaction });
 
       // Commit the transaction
       await transaction.commit();
@@ -59,13 +63,13 @@ export const likeSnippet = asyncWrapper(
         data: {
           id: snippetId,
           likes_count: updatedSnippet?.likes_count || 0,
-          liked: true
-        }
+          liked: true,
+        },
       });
     } catch (error) {
       // Rollback the transaction if there's an error
       await transaction.rollback();
-      return next(new ErrorResponse(500, 'Error liking snippet'));
+      return next(new ErrorResponse(500, "Error liking snippet"));
     }
   }
 );
@@ -83,19 +87,21 @@ export const unlikeSnippet = asyncWrapper(
     // Check if snippet exists
     const snippet = await SnippetModel.findByPk(snippetId);
     if (!snippet) {
-      return next(new ErrorResponse(404, `Snippet with id ${snippetId} not found`));
+      return next(
+        new ErrorResponse(404, `Snippet with id ${snippetId} not found`)
+      );
     }
 
     // Check if liked
     const existingLike = await SnippetLikeModel.findOne({
       where: {
         userId,
-        snippetId
-      }
+        snippetId,
+      },
     });
 
     if (!existingLike) {
-      return next(new ErrorResponse(400, 'You have not liked this snippet'));
+      return next(new ErrorResponse(400, "You have not liked this snippet"));
     }
 
     // Use a transaction to ensure data consistency
@@ -106,7 +112,7 @@ export const unlikeSnippet = asyncWrapper(
       await existingLike.destroy({ transaction });
 
       // Decrement the likes_count on the snippet
-      await snippet.decrement('likes_count', { transaction });
+      await snippet.decrement("likes_count", { transaction });
 
       // Commit the transaction
       await transaction.commit();
@@ -119,13 +125,13 @@ export const unlikeSnippet = asyncWrapper(
         data: {
           id: snippetId,
           likes_count: updatedSnippet?.likes_count || 0,
-          liked: false
-        }
+          liked: false,
+        },
       });
     } catch (error) {
       // Rollback the transaction if there's an error
       await transaction.rollback();
-      return next(new ErrorResponse(500, 'Error unliking snippet'));
+      return next(new ErrorResponse(500, "Error unliking snippet"));
     }
   }
 );
@@ -139,36 +145,42 @@ export const checkLiked = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = (req as any).user?.id;
     const snippetId = req.params.id;
-    
-    console.debug(`Checking if snippet ${snippetId} is liked by user ${userId || 'unauthenticated'}`);
 
+    if (!userId) {
+      return;
+    }
+    
     // Check if snippet exists
     const snippet = await SnippetModel.findByPk(snippetId);
     if (!snippet) {
-      return next(new ErrorResponse(404, `Snippet with id ${snippetId} not found`));
+      return next(
+        new ErrorResponse(404, `Snippet with id ${snippetId} not found`)
+      );
     }
+
+    console.debug(
+      `Checking if snippet ${snippetId} is liked by user ${
+        userId || "unauthenticated"
+      }`
+    );
 
     // Check if liked - only if user is authenticated
     let liked = false;
-    if (userId) {
-      const existingLike = await SnippetLikeModel.findOne({
-        where: {
-          userId,
-          snippetId
-        }
-      });
-      liked = !!existingLike;
-      console.debug(`User ${userId} ${liked ? 'has liked' : 'has not liked'} snippet ${snippetId}`);
-    } else {
-      console.debug(`Unauthenticated user checking like status for snippet ${snippetId}`);
-    }
+
+    const existingLike = await SnippetLikeModel.findOne({
+      where: {
+        userId,
+        snippetId,
+      },
+    });
+    liked = !!existingLike;
 
     res.status(200).json({
       success: true,
       data: {
         liked,
-        likes_count: snippet.likes_count
-      }
+        likes_count: snippet.likes_count,
+      },
     });
   }
-); 
+);

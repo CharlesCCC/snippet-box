@@ -136,7 +136,12 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
   const getSnippetById = (id: string): void => {
     axios
       .get<Response<Snippet>>(`/api/snippets/${id}`)
-      .then(res => setCurrentSnippet(res.data.data))
+      .then(res => {
+        // Compare with current snippet to prevent unnecessary state updates
+        if (!currentSnippet || JSON.stringify(currentSnippet) !== JSON.stringify(res.data.data)) {
+          setCurrentSnippet(res.data.data);
+        }
+      })
       .catch(err => redirectOnError());
   };
 
@@ -146,12 +151,19 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       return;
     }
 
-    getSnippetById(id);
+    // Check if we already have this snippet selected to prevent infinite loops
+    if (currentSnippet && currentSnippet.id === id) {
+      return;
+    }
 
+    // First try to find the snippet in our local state
     const snippet = snippets.find(s => s.id === id);
 
     if (snippet) {
       setCurrentSnippet(snippet);
+    } else {
+      // Only make an API call if we don't have the snippet locally
+      getSnippetById(id);
     }
   };
 

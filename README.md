@@ -158,6 +158,21 @@ connection lang:javascript tags:database,mongodb
 
 ## Known Issues and Fixes
 
+### Infinite Loop When Editing Snippets (Fixed)
+
+We identified and fixed an issue where opening the editor for an existing snippet (`/editor/:id`) would cause infinite API calls to `getSnippet`. The issue was in the interaction between the `Editor` component and the `SnippetsContext`:
+
+1. The `setSnippet` function was always calling `getSnippetById`, which made an API request regardless of whether the snippet was already loaded
+2. When the API response came back, it would update the state, causing a re-render
+3. This would trigger the `useEffect` in the `Editor` component again, creating an infinite loop
+
+The fix involved three changes:
+- In `SnippetsContext`: Modified `setSnippet` to check if the current snippet is already the requested one
+- In `SnippetsContext`: Enhanced `getSnippetById` to compare new data with current data before setting state
+- In `Editor.tsx`: Added a condition to the `useEffect` to prevent unnecessary calls
+
+These changes ensure that API calls are only made when needed, preventing the infinite loop.
+
 ### Data Type Conversions
 
 - **isPinned Field**: The `isPinned` field is stored as an INTEGER in the database (0 for false, 1 for true), but is handled as a boolean in the API requests. The controllers automatically convert between these formats.

@@ -21,11 +21,12 @@ export const Editor = (): JSX.Element => {
 
   // Set snippet
   useEffect(() => {
-    if (id) {
+    if (id && !inEdit) {
+      // console.log(`Editor component - Setting snippet with ID: ${id}`);
       setCurrentSnippet(id);
       setInEdit(true);
     }
-  }, [id, setCurrentSnippet]);
+  }, [id, setCurrentSnippet, inEdit]);
 
   return (
     <Layout>
