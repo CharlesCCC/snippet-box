@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { asyncWrapper } from '../middleware';
-import { UserSavedSnippetModel, SnippetModel } from '../models';
+import { UserSavedSnippetModel, SnippetModel, UserModel } from '../models';
 import { Op } from 'sequelize';
 
 /**
@@ -128,6 +128,11 @@ export const getSavedSnippets = asyncWrapper(
           through: {
             attributes: []
           }
+        },
+        {
+          model: UserModel,
+          as: 'user',
+          attributes: ['id', 'email', 'user_name']
         }
       ]
     });
