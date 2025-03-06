@@ -10,11 +10,11 @@ import { SnippetLike } from './SnippetLike';
 import { SnippetSave } from './SnippetSave';
 import { AuthContext } from '../../store';
 import Icon from '@mdi/react';
-import { 
-  mdiAccount, 
-  mdiTwitter, 
-  mdiFacebook, 
-  mdiLinkedin, 
+import {
+  mdiAccount,
+  mdiTwitter,
+  mdiFacebook,
+  mdiLinkedin,
   mdiEmail,
 } from '@mdi/js';
 import { Link } from 'react-router-dom';
@@ -34,12 +34,14 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     id,
     isPinned,
     userId,
+    code,
     likes_count = 0,
     user
   } = props.snippet;
 
   const history = useHistory();
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [copyUrlSuccess, setCopyUrlSuccess] = useState(false);
+  const [copyCodeSuccess, setCopyCodeSuccess] = useState(false);
 
   const { deleteSnippet, setSnippet } = useContext(SnippetsContext);
   const { user: currentUser } = useContext(AuthContext);
@@ -55,8 +57,15 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     const { protocol, host, pathname } = window.location;
     const url = `${protocol}//${host}${pathname}`;
     copy(url);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
+    setCopyUrlSuccess(true);
+    setTimeout(() => setCopyUrlSuccess(false), 2000);
+  };
+  
+  // Handle copying the code to clipboard
+  const copyCodeHandler = () => {
+    copy(code);
+    setCopyCodeSuccess(true);
+    setTimeout(() => setCopyCodeSuccess(false), 2000);
   };
 
   // Get current page URL for sharing
@@ -127,7 +136,7 @@ export const SnippetDetails = (props: Props): JSX.Element => {
           <span>Last updated</span>
           <span>{updateDate.relative}</span>
         </div>
-        
+
         {/* CREATOR */}
         {user && (
           <div className={`d-flex justify-content-between align-items-center`}>
@@ -184,41 +193,49 @@ export const SnippetDetails = (props: Props): JSX.Element => {
             </>
           )}
 
+          {/* COPY CODE BUTTON */}
+          <Button
+            text={copyCodeSuccess ? 'Copied!' : 'Copy'} 
+            color='secondary'
+            outline
+            handler={copyCodeHandler}
+          />
+
           {/* SHARE SECTION */}
           <div className='d-flex justify-content-between mb-2'>
             <div className='me-2 flex-grow-1'>
               <Button
-                text={copySuccess ? 'Copied!' : 'Copy URL'}
+                text={copyUrlSuccess ? 'Copied!' : 'Share URL'}
                 color='secondary'
                 outline
                 handler={copyUrlHandler}
               />
-              {copySuccess && <span className="ms-2 text-success small">✓</span>}
+              {copyUrlSuccess && <span className="ms-2 text-success small">✓</span>}
             </div>
             <div className='d-flex'>
-              <button 
-                className='btn btn-sm btn-outline-secondary me-2' 
+              <button
+                className='btn btn-sm btn-outline-secondary me-2'
                 onClick={shareToTwitter}
                 title="Share on Twitter/X"
               >
                 <Icon path={mdiTwitter} size={0.8} />
               </button>
-              <button 
-                className='btn btn-sm btn-outline-secondary me-2' 
+              <button
+                className='btn btn-sm btn-outline-secondary me-2'
                 onClick={shareToFacebook}
                 title="Share on Facebook"
               >
                 <Icon path={mdiFacebook} size={0.8} />
               </button>
-              <button 
-                className='btn btn-sm btn-outline-secondary me-2' 
+              <button
+                className='btn btn-sm btn-outline-secondary me-2'
                 onClick={shareToLinkedin}
                 title="Share on LinkedIn"
               >
                 <Icon path={mdiLinkedin} size={0.8} />
               </button>
-              <button 
-                className='btn btn-sm btn-outline-secondary' 
+              <button
+                className='btn btn-sm btn-outline-secondary'
                 onClick={shareByEmail}
                 title="Share via Email"
               >
