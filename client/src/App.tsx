@@ -21,7 +21,6 @@ export const App = () => {
           <Switch>
             {/* Public Routes */}
             <Route exact path='/' component={Home} />
-            <Route path='/snippets' component={Snippets} />
             <Route path='/snippet/:id' component={Snippet} />
             <Route path='/login' component={Login} />
             <Route path='/register' component={Register} />
@@ -29,6 +28,7 @@ export const App = () => {
             <Route path='/resetpassword/:resettoken' component={ResetPassword} />
             
             {/* Protected Routes */}
+            <ProtectedRoute path='/snippets' component={Snippets} />
             <ProtectedRoute path='/editor/:id?' component={Editor} />
             <ProtectedRoute path='/profile' component={UpdateProfile} />
             <ProtectedRoute path='/update-password' component={UpdatePassword} />

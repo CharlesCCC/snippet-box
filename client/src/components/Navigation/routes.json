@@ -1,11 +1,11 @@
 {
   "routes": [
     {
-      "name": "Home",
+      "name": "Discover",
       "dest": "/"
     },
     {
-      "name": "Snippets",
+      "name": "MySnippets",
       "dest": "/snippets"
     },
     {
