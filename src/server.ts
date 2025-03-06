@@ -6,15 +6,15 @@ import { connectDB } from './db';
 import { errorHandler } from './middleware';
 import cookieParser from 'cookie-parser';
 
+// Env config
+dotenv.config({ path: './src/config/.env' });
+
 // Routers
 import { snippetRouter } from './routes/snippets';
 import authRouter from './routes/auth';
 import savedRouter from './routes/saved';
 import likesRouter from './routes/likes';
 import { associateModels } from './db/associateModels';
-
-// Env config
-dotenv.config({ path: './src/config/.env' });
 
 const app = express();
 const logger = new Logger('server');

@@ -14,6 +14,7 @@ Snippet Box is a simple self-hosted app for organizing your code snippets. It al
 - Markdown support for notes and documentation
 - Pin important snippets for quick access
 - Public and private snippets
+- Email verification for user accounts
 - Automatic loading of more snippets when scrolling (when 9+ snippets are available)
 - Responsive design for desktop and mobile devices
 

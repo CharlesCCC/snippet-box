@@ -9,12 +9,15 @@ export interface UserAttributes {
   user_name: string;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
+  isEmailVerified: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpire?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export interface UserCreationAttributes
-  extends Omit<UserAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+  extends Omit<UserAttributes, 'id' | 'createdAt' | 'updatedAt' | 'isEmailVerified'> {}
 
 // Create a class that extends Model with the instance method
 export class UserInstance extends Model<UserAttributes, UserCreationAttributes> 
@@ -25,6 +28,9 @@ export class UserInstance extends Model<UserAttributes, UserCreationAttributes>
   public user_name!: string;
   public resetPasswordToken?: string;
   public resetPasswordExpire?: Date;
+  public isEmailVerified!: boolean;
+  public emailVerificationToken?: string;
+  public emailVerificationExpire?: Date;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -72,6 +78,22 @@ UserInstance.init(
       type: DataTypes.DATE,
       allowNull: true,
       field: 'reset_password_expire'
+    },
+    isEmailVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_email_verified'
+    },
+    emailVerificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'email_verification_token'
+    },
+    emailVerificationExpire: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'email_verification_expire'
     },
     createdAt: {
       type: DataTypes.DATE,

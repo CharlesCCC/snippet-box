@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { asyncWrapper } from '../middleware';
 import { UserModel, SnippetModel, TagModel } from '../models';
-import { ErrorResponse, Logger } from '../utils';
+import { ErrorResponse, Logger, EmailService } from '../utils';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { Op } from 'sequelize';
@@ -45,9 +45,29 @@ const sendTokenResponse = (
       data: {
         id: user.id,
         email: user.email,
-        user_name: user.user_name
+        user_name: user.user_name,
+        isEmailVerified: user.isEmailVerified
       }
     });
+};
+
+// Helper to generate email verification token
+const generateEmailVerificationToken = async (user: any): Promise<string> => {
+  // Generate token
+  const verificationToken = crypto.randomBytes(20).toString('hex');
+
+  // Set token and expiration
+  user.emailVerificationToken = crypto
+    .createHash('sha256')
+    .update(verificationToken)
+    .digest('hex');
+
+  // Set token expiration (24 hours)
+  user.emailVerificationExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await user.save();
+
+  return verificationToken;
 };
 
 /**
@@ -77,8 +97,125 @@ export const register = asyncWrapper(
       user_name: `PromptUp_${Math.random().toString(36).substring(2, 10)}` // Generate random username
     });
 
+    // Generate verification token
+    const verificationToken = await generateEmailVerificationToken(user);
+
+    // Send verification email
+    try {
+      await EmailService.sendVerificationEmail(
+        user.email,
+        verificationToken,
+        user.user_name
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'User registered. Please check your email to verify your account.',
+        data: {
+          id: user.id,
+          email: user.email,
+          user_name: user.user_name,
+          isEmailVerified: user.isEmailVerified
+        }
+      });
+    } catch (error) {
+      // If email sending fails, still create user but warn them
+      console.error(`Failed to send verification email: ${error}`);
+      
+      res.status(201).json({
+        success: true,
+        message: 'User registered but failed to send verification email. Please try to resend verification email.',
+        data: {
+          id: user.id,
+          email: user.email,
+          user_name: user.user_name,
+          isEmailVerified: user.isEmailVerified
+        }
+      });
+    }
+  }
+);
+
+/**
+ * @description Verify email
+ * @route /api/auth/verify-email/:token
+ * @request GET
+ */
+export const verifyEmail = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Get hashed token
+    const emailVerificationToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    // Find user with token and not expired
+    const user = await UserModel.findOne({
+      where: {
+        emailVerificationToken,
+        emailVerificationExpire: { [Op.gt]: Date.now() }
+      }
+    });
+
+    if (!user) {
+      return next(new ErrorResponse(400, 'Invalid or expired token'));
+    }
+
+    // Set email as verified
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpire = undefined;
+    await user.save();
+
     // Send token response
-    sendTokenResponse(user, 201, res);
+    sendTokenResponse(user, 200, res);
+  }
+);
+
+/**
+ * @description Resend verification email
+ * @route /api/auth/resend-verification
+ * @request POST
+ */
+export const resendVerificationEmail = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(new ErrorResponse(400, 'Please provide email'));
+    }
+
+    // Find user
+    const user = await UserModel.findOne({ where: { email } });
+    
+    if (!user) {
+      return next(new ErrorResponse(404, 'User not found'));
+    }
+
+    // Check if email is already verified
+    if (user.isEmailVerified) {
+      return next(new ErrorResponse(400, 'Email already verified'));
+    }
+
+    // Generate verification token
+    const verificationToken = await generateEmailVerificationToken(user);
+
+    // Send verification email
+    try {
+      await EmailService.sendVerificationEmail(
+        user.email,
+        verificationToken,
+        user.user_name
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'Verification email sent'
+      });
+    } catch (error) {
+      console.error(`Failed to resend verification email: ${error}`);
+      return next(new ErrorResponse(500, 'Failed to send verification email'));
+    }
   }
 );
 

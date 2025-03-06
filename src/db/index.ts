@@ -5,7 +5,6 @@ import { Logger } from '../utils';
 import * as dotenv from 'dotenv';
 
 // Load environment variables first
-// dotenv.config({ path: '../config/.env' });
 dotenv.config({ path: './src/config/.env' });
 
 const logger = new Logger('db');
