@@ -16,8 +16,8 @@ export const SavedSnippets = (): JSX.Element => {
       
       {savedSnippets.length === 0 ? (
         <EmptyState
-          title='No saved snippets'
-          description='You have not saved any snippets yet. Browse snippets and click the bookmark icon to save them for later.'
+          title='No snippets saved yet'
+          description='Browse snippets and click the bookmark icon to save them for later.'
         />
       ) : (
         <SnippetGrid snippets={savedSnippets} />

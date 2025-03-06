@@ -99,9 +99,9 @@ export const CommentForm: React.FC<Props> = ({
           onChange={(e) => setContent(e.target.value)}
           required
         />
-        <small className="form-text text-muted">
+        {/* <small className="form-text text-muted">
           Use @username to mention users
-        </small>
+        </small> */}
       </div>
       
       <div className="d-flex justify-content-end">

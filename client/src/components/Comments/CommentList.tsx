@@ -39,7 +39,7 @@ export const CommentList: React.FC<Props> = ({ snippetId }) => {
 
   return (
     <div className="comments-section mt-4">
-      {/* <h5 className="mb-3">Comments</h5> */}
+      <h5 className="mb-3">Comments ({comments.length})</h5>
       
       {/* Comment Form for authenticated users */}
       {isAuthenticated && user ? (
@@ -58,7 +58,7 @@ export const CommentList: React.FC<Props> = ({ snippetId }) => {
           <Spinner />
         </div>
       ) : comments.length === 0 ? (
-        <EmptyState title="No comments yet. Be the first to comment!" />
+        <EmptyState title="Be the first to comment" description="to start the conversation." />
       ) : (
         <div className="comments-list">
           {comments.map(comment => (

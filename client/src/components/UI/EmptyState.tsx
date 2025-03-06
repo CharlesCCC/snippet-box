@@ -6,7 +6,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState = ({ 
-  title = "You currently don't have any snippets", 
+  title = "Nothing here yet", 
   description 
 }: EmptyStateProps): JSX.Element => {
   const editorLink = (
@@ -21,7 +21,8 @@ export const EmptyState = ({
       {description ? (
         <p>{description}</p>
       ) : (
-        <p>Go to the {editorLink} and create one</p>
+          <p>Go to the {editorLink} and create one</p>
+          // <p></p>
       )}
     </div>
   );

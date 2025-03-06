@@ -51,7 +51,7 @@ export const Snippet = (): JSX.Element => {
           
           {/* COMMENTS SECTION */}
           <div className='col-12 mt-3'>
-            <Card title='Comments'>
+            <Card>
               <CommentProvider>
                 <CommentList snippetId={currentSnippet.id} />
               </CommentProvider>
