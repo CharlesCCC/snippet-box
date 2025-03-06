@@ -57,6 +57,26 @@ export const createSnippet = asyncWrapper(
  */
 export const getAllSnippets = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Get pagination parameters from query string
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+    
+    // Get sort parameter from query string (default: most_recent)
+    const sort = (req.query.sort as string) || 'most_recent';
+    
+    // Define order based on sort parameter
+    let order: any;
+    switch (sort) {
+      case 'most_liked':
+        order = [['likes_count', 'DESC'], ['updatedAt', 'DESC']]; // Secondary sort by updated_at if likes are equal
+        break;
+      case 'most_recent':
+      default:
+        order = [['updatedAt', 'DESC']];
+        break;
+    }
+    
     // Get the current user ID from request (if authenticated)
     const userId = (req as any).user?.id;
     
@@ -76,6 +96,11 @@ export const getAllSnippets = asyncWrapper(
     
     console.log('Where clause:', whereClause);
 
+    // Get total count of snippets matching where clause
+    const total = await SnippetModel.count({
+      where: whereClause
+    });
+
     const snippets = await SnippetModel.findAll({
       where: whereClause,
       include: [
@@ -92,7 +117,10 @@ export const getAllSnippets = asyncWrapper(
           as: 'user',
           attributes: ['id', 'email', 'user_name']
         }
-      ]
+      ],
+      limit,
+      offset,
+      order // Use dynamic ordering based on sort parameter
     });
 
     console.log('Found snippets:', snippets.length);
@@ -106,7 +134,14 @@ export const getAllSnippets = asyncWrapper(
     });
 
     res.status(200).json({
-      data: populatedSnippets
+      data: populatedSnippets,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      },
+      sort // Include the sort parameter in the response
     });
   }
 );

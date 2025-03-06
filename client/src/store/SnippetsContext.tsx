@@ -45,7 +45,7 @@ export interface SnippetsContextType {
     totalPages: number;
   };
   currentSort: string;
-  getSnippets: () => Promise<void>;
+  getSnippets: (page?: number, limit?: number, sort?: string) => Promise<void>;
   getPublicSnippets: (page?: number, limit?: number, sort?: string) => Promise<void>;
   getSnippetById: (id: string) => void;
   setSnippet: (id: string) => void;
@@ -99,16 +99,25 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     history.push('/');
   };
 
-  const getSnippets = async (): Promise<void> => {
+  const getSnippets = async (page: number = 1, limit: number = 9, sort: string = 'most_recent'): Promise<void> => {
     try {
-      const { data } = await axios.get('/api/snippets');
-      setSnippets(data.data);
+      const { data } = await axios.get(`/api/snippets?page=${page}&limit=${limit}&sort=${sort}`);
+      
+      // If it's the first page, replace the snippets
+      // If it's a subsequent page, append the new snippets
+      if (page === 1) {
+        setSnippets(data.data);
+      } else {
+        setSnippets(prevSnippets => [...prevSnippets, ...data.data]);
+      }
+      
+      setPagination(data.pagination);
     } catch (error) {
       console.error('Error fetching snippets:', error);
     }
   };
 
-  const getPublicSnippets = async (page: number = 1, limit: number = 10, sort: string = currentSort): Promise<void> => {
+  const getPublicSnippets = async (page: number = 1, limit: number = 9, sort: string = currentSort): Promise<void> => {
     try {
       const { data } = await axios.get(`/api/snippets/public?page=${page}&limit=${limit}&sort=${sort}`);
       
